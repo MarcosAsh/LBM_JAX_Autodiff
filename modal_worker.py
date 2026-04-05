@@ -31,7 +31,7 @@ image = (
 )
 
 
-@app.function(image=image, gpu="A100", timeout=1800)
+@app.function(image=image, gpu="A100", timeout=3600)
 def run_example(name: str):
     """Run one of the example scripts on GPU."""
     import subprocess
