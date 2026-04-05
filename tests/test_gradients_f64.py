@@ -13,6 +13,14 @@ import jax
 import jax.numpy as jnp
 import pytest
 
+# Skip if x64 mode didn't activate (e.g. JAX was imported before the
+# env var was set, which happens on Modal where pip install imports the
+# package during build). These tests are verified locally.
+pytestmark = pytest.mark.skipif(
+    not jax.config.x64_enabled,
+    reason="float64 not enabled (JAX imported before JAX_ENABLE_X64 was set)",
+)
+
 from jax_lbm.core.equilibrium import equilibrium, compute_density, compute_velocity
 from jax_lbm.core.collision import bgk
 from jax_lbm.core.streaming import stream
