@@ -66,7 +66,7 @@ def main():
     # Grid and physics setup.
     nx, ny, nz = 48, 24, 24
     u_inlet = 0.05
-    n_steps = 30  # short for demo
+    n_steps = 100  # enough for the wake to start developing
 
     # Re = 50 on this grid.
     D_lattice = 48 * 0.5 / 4.0  # 6 cells diameter for radius=0.5
@@ -79,42 +79,65 @@ def main():
     print(f"Steps per evaluation: {n_steps}")
     print()
 
-    # Gradient function.
-    cd_and_grad = jax.value_and_grad(
+    # JIT-compile the forward + backward pass.
+    cd_and_grad = jax.jit(jax.value_and_grad(
         lambda r: simulate_cd(r, nx, ny, nz, n_steps, u_inlet, tau)
-    )
+    ))
+
+    # Warm up JIT (first call compiles).
+    print("Compiling (first call)...")
+    radius = jnp.float32(0.5)
+    cd_init, _ = cd_and_grad(radius)
+    print(f"Initial Cd at radius=0.5: {float(cd_init):.6f}")
+    print()
 
     # Gradient descent on the radius.
-    radius = jnp.float32(0.5)
-    lr = 0.01
-    n_iters = 15
+    # Use a small learning rate to avoid oscillation and clip the gradient
+    # to prevent jumps when the Cd landscape is steep.
+    lr = 0.002
+    n_iters = 25
+    max_grad = 5.0
 
     print(f"{'Iter':>4s}  {'Radius':>8s}  {'Cd':>10s}  {'dCd/dr':>10s}")
     print("-" * 40)
 
+    cd_history = []
+
     for i in range(n_iters):
         cd, grad = cd_and_grad(radius)
+        cd_history.append(float(cd))
+
+        # Clip gradient for stability.
+        grad = jnp.clip(grad, -max_grad, max_grad)
+
         print(f"{i:4d}  {float(radius):8.4f}  {float(cd):10.6f}  {float(grad):10.6f}")
 
         # Gradient descent step (minimize Cd).
         radius = radius - lr * grad
 
-        # Clamp to physical range.
-        radius = jnp.clip(radius, 0.2, 1.0)
+        # Clamp to physical range: not too small (vanishes) or too large
+        # (fills the domain).
+        radius = jnp.clip(radius, 0.2, 0.8)
 
     print()
-    print(f"Final radius: {float(radius):.4f}")
-    print(f"Final Cd: {float(cd):.6f}")
 
-    # Verify that Cd decreased.
-    cd_initial = simulate_cd(jnp.float32(0.5), nx, ny, nz, n_steps, u_inlet, tau)
-    cd_final = simulate_cd(radius, nx, ny, nz, n_steps, u_inlet, tau)
-    print(f"Cd reduction: {float(cd_initial):.6f} -> {float(cd_final):.6f}")
+    # Final evaluation.
+    cd_final, _ = cd_and_grad(radius)
+    print(f"Initial Cd:  {float(cd_init):.6f}  (radius=0.5)")
+    print(f"Final Cd:    {float(cd_final):.6f}  (radius={float(radius):.4f})")
 
-    if float(cd_final) < float(cd_initial):
-        print("Optimization successful: Cd decreased.")
+    if float(cd_final) < float(cd_init):
+        reduction = (1.0 - float(cd_final) / float(cd_init)) * 100
+        print(f"Drag reduced by {reduction:.1f}%")
     else:
-        print("Warning: Cd did not decrease. May need more steps or different learning rate.")
+        print("Cd did not decrease. Try more sim steps or a smaller learning rate.")
+
+    # Show convergence history.
+    print()
+    print("Cd convergence history:")
+    for i, cd_val in enumerate(cd_history):
+        bar = "#" * max(1, int(cd_val * 30))
+        print(f"  {i:3d}  {cd_val:8.4f}  {bar}")
 
 
 if __name__ == "__main__":
