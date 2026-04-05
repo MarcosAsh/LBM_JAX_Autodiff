@@ -1,25 +1,29 @@
-\documentclass[preprint,12pt]{elsarticle}
+\documentclass[10pt,twocolumn]{article}
 
+\usepackage[margin=2cm]{geometry}
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
-\usepackage{algorithm}
-\usepackage{algpseudocode}
 \usepackage{booktabs}
 \usepackage{hyperref}
 \usepackage{cleveref}
+\usepackage{authblk}
+\usepackage{abstract}
+\usepackage{xcolor}
 
-\journal{Journal of Computational Physics}
+\renewcommand{\abstractnamefont}{\normalfont\bfseries}
+\renewcommand{\abstracttextfont}{\normalfont\small}
 
 \begin{document}
 
-\begin{frontmatter}
+\title{\textbf{Differentiable Lattice Boltzmann Simulation with\\Second-Order Boundary Conditions\\for Gradient-Based Shape Optimisation}}
 
-\title{Differentiable Lattice Boltzmann Simulation with Second-Order Boundary Conditions for Gradient-Based Shape Optimisation}
+\author{Marcos Ashton Iglesias}
+\affil{Department of Computer Science, University of Exeter, Exeter, UK}
 
-\author{Marcos Ash Iglesias}
-\address{Department of Computer Science, University of Exeter, Exeter, UK}
+\date{}
+\maketitle
 
-\begin{abstract}
+\begin{onecolabstract}
 We present a fully differentiable D3Q19 Lattice Boltzmann solver in JAX
 that supports gradient-based shape optimisation through second-order
 accurate Bouzidi interpolated bounce-back boundary conditions. The
@@ -32,20 +36,17 @@ distances as fixed. We validate the solver against the analytic
 Poiseuille flow solution and experimental sphere drag data at $Re = 100$
 (Clift et al.\ 1978). We demonstrate gradient-based drag minimisation on
 a sphere, achieving 68\% drag reduction, and show that Bouzidi boundary
-gradients produce superior optimisation convergence compared to standard
-bounce-back. A grid convergence study confirms that the autodiff gradient
-of drag coefficient with respect to obstacle radius converges under mesh
-refinement. The solver, including BGK and MRT collision operators, is
-open-source and available at
+gradients are approximately $35\times$ stronger than standard bounce-back
+gradients, producing a 37\% better optimum. The solver, including BGK and
+MRT collision operators, is open-source at
 \url{https://github.com/MarcosAsh/LBM_JAX_Autodiff}.
-\end{abstract}
 
-\begin{keyword}
-lattice Boltzmann method \sep automatic differentiation \sep shape
-optimisation \sep Bouzidi bounce-back \sep JAX \sep inverse design
-\end{keyword}
+\smallskip\noindent\textbf{Keywords:}
+lattice Boltzmann method, automatic differentiation, shape
+optimisation, Bouzidi bounce-back, JAX, inverse design
+\end{onecolabstract}
 
-\end{frontmatter}
+\vspace{0.5cm}
 
 %% ================================================================
 \section{Introduction}
@@ -174,18 +175,14 @@ multiply.
 At solid boundaries, distributions that would stream from inside the
 wall are replaced by bounced values. The Bouzidi
 scheme~\cite{bouzidi2001} uses the fractional distance $q$ from the
-fluid node to the wall along the lattice link. Two interpolation regimes
-apply:
+fluid node to the wall along the lattice link:
 %
 \begin{equation}
-f_i(\mathbf{x}, t+1) =
-\begin{cases}
-\frac{1}{2q} f_{i'}^*(\mathbf{x})
-+ \left(1 - \frac{1}{2q}\right) f_i^*(\mathbf{x})
-& \text{if } q \geq 0.5, \\[6pt]
-2q \, f_{i'}^*(\mathbf{x})
-+ (1 - 2q) \, f_{i'}^*(\mathbf{x} + \mathbf{e}_i)
-& \text{if } q < 0.5,
+f_i = \begin{cases}
+\frac{1}{2q} f_{i'}^* + \left(1 - \frac{1}{2q}\right) f_i^*
+& q \geq 0.5, \\[6pt]
+2q \, f_{i'}^* + (1 - 2q) \, f_{i'}^*(\mathbf{x} + \mathbf{e}_i)
+& q < 0.5,
 \end{cases}
 \label{eq:bouzidi}
 \end{equation}
@@ -205,12 +202,8 @@ q = \frac{-b - \sqrt{b^2 - 4ac}}{2a},
 with $a = |\mathbf{d}|^2$, $b = 2(\mathbf{x} - \mathbf{c}) \cdot
 \mathbf{d}$, $c = |\mathbf{x} - \mathbf{c}|^2 - r^2$, where
 $\mathbf{d}$ is the lattice velocity vector in world coordinates.
-
-The gradient $\partial q / \partial r$ exists and is well-defined
-because~\eqref{eq:ray_sphere} is a smooth function of $r$ (the
-discriminant is positive at boundary links by construction). JAX's
-reverse-mode AD traces through the square root and division
-automatically.
+This is a smooth function of $r$, and JAX's reverse-mode AD traces
+through it automatically.
 
 \subsection{Differentiable solid representation}
 
@@ -231,49 +224,37 @@ behaviour:
 f_i^{\text{out}} = (1 - \phi) f_i^{\text{collided}} + \phi \, f_{i'}^{\text{collided}}.
 \end{equation}
 
-This provides a differentiable path from the geometry parameters through
-collision into the force computation, complementing the Bouzidi gradient
-path through streaming.
+This provides a differentiable path through collision, complementing the
+Bouzidi gradient path through streaming.
 
 \subsection{Force computation}
 
 We use the Mei-Luo-Shyy momentum exchange method~\cite{mei2002}. For
 each fluid node adjacent to a solid boundary, the force contribution
 from lattice link $i$ is
-%
-\begin{equation}
-\mathbf{F}_i = \mathbf{e}_i (f_i^* + f_{i'}).
-\end{equation}
-%
-The total drag force is the sum over all boundary links. The drag
-coefficient is
+$\mathbf{F}_i = \mathbf{e}_i (f_i^* + f_{i'})$.
+The drag coefficient is
 %
 \begin{equation}
 C_d = \frac{|F_x|}{\frac{1}{2} \rho_\infty U_\infty^2 A},
 \end{equation}
 %
-where $A$ is the projected frontal area of the obstacle.
+where $A$ is the projected frontal area.
 
 \subsection{Boundary conditions}
 
-At the inlet ($x = 0$) we apply the Zou-He velocity boundary
-condition~\cite{zou1997}, which computes unknown distributions from the
-prescribed velocity using non-equilibrium bounce-back. At the outlet ($x
-= N_x - 1$) we apply Zou-He with prescribed pressure ($\rho = 1$). The
-$y$ and $z$ boundaries are periodic.
+At the inlet ($x = 0$) we apply Zou-He velocity boundary
+conditions~\cite{zou1997}. At the outlet ($x = N_x - 1$) we apply
+Zou-He with prescribed pressure ($\rho = 1$). The $y$ and $z$ boundaries
+are periodic.
 
-\subsection{Gradient computation and checkpointing}
+\subsection{Gradient checkpointing}
 
-The entire simulation is composed of pure functions compatible with
-\texttt{jax.grad}. A forward simulation of $N$ steps is compiled into a
-single XLA program via \texttt{jax.lax.scan}, and the backward pass is
-generated automatically by reverse-mode AD.
-
-To keep memory bounded, each simulation step is wrapped with
-\texttt{jax.checkpoint} (rematerialisation), which recomputes forward
-values during the backward pass instead of storing them. This reduces
-memory from $O(N)$ intermediate states to $O(1)$, at the cost of
-approximately $2\times$ wall-clock time for the backward pass.
+The simulation is compiled into a single XLA program via
+\texttt{jax.lax.scan}. Each step is wrapped with
+\texttt{jax.checkpoint}, which recomputes forward values during the
+backward pass instead of storing them. Memory drops from $O(N)$
+intermediate states to $O(1)$.
 
 
 %% ================================================================
@@ -285,35 +266,29 @@ approximately $2\times$ wall-clock time for the backward pass.
 We simulate pressure-driven flow between two parallel walls separated by
 $H = 18$ lattice cells in a $60 \times 20 \times 4$ domain. The
 inlet velocity is $U = 0.05$, the relaxation time is $\tau = 0.8$
-($\nu = 0.1$), and we run 3000 BGK steps. The steady-state velocity
-profile at the channel midpoint is compared against the analytic
-parabolic solution
-%
-\begin{equation}
-u_x(y) = u_{\max} \frac{4 y (H - y)}{H^2}.
-\end{equation}
-%
-\Cref{tab:poiseuille} shows the comparison. The LBM solution matches
-the analytic profile to three or more significant figures across the
-channel, with perfect top-bottom symmetry. The velocity at the wall
-cells is below $5 \times 10^{-4}$ in lattice units.
+($\nu = 0.1$), and we run 3000 BGK steps.
 
-\begin{table}[h]
+\Cref{tab:poiseuille} shows the comparison against the analytic
+parabolic solution. The LBM solution matches to three or more
+significant figures across the channel, with perfect top-bottom
+symmetry.
+
+\begin{table}[t]
 \centering
-\caption{Poiseuille flow: LBM vs analytic velocity at selected $y$
-positions. Channel height $H = 18$, $\tau = 0.8$, 3000 steps.}
+\caption{Poiseuille flow: LBM vs analytic velocity. $H = 18$,
+$\tau = 0.8$, 3000 steps.}
 \label{tab:poiseuille}
 \begin{tabular}{rcc}
 \toprule
 $y$ & $u_x$ (LBM) & $u_x$ (analytic) \\
 \midrule
- 0 & 0.000200 & 0.000000 \\
- 1 & 0.008247 & 0.008305 \\
- 5 & 0.057873 & 0.057659 \\
- 9 & 0.076879 & 0.076641 \\
-10 & 0.076879 & 0.076641 \\
-15 & 0.048352 & 0.048168 \\
-19 & 0.000200 & 0.000000 \\
+ 0 & 0.0002 & 0.0000 \\
+ 1 & 0.0082 & 0.0083 \\
+ 5 & 0.0579 & 0.0577 \\
+ 9 & 0.0769 & 0.0766 \\
+10 & 0.0769 & 0.0766 \\
+15 & 0.0484 & 0.0482 \\
+19 & 0.0002 & 0.0000 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -321,29 +296,23 @@ $y$ & $u_x$ (LBM) & $u_x$ (analytic) \\
 \subsection{Sphere drag at $Re = 100$}
 
 A sphere of diameter $D = 16$ lattice cells is placed in a $128 \times
-64 \times 64$ domain with $U = 0.05$, giving $Re = U D / \nu = 100$
-and $\tau = 0.524$. We run 4000 MRT steps and measure the drag
-coefficient via momentum exchange.
+64 \times 64$ domain with $U = 0.05$, giving $Re = 100$ and $\tau =
+0.524$. We run 4000 MRT steps.
 
-The Clift et al.~\cite{clift1978} reference value is $C_d = 1.09$.
-Our MRT simulation produces $C_d = 1.20$, a relative error of
-$10.3\%$. This is consistent with the geometric discretisation error
-expected at $D = 16$ cells, where the staircase representation of the
-sphere surface (even with Bouzidi interpolation) introduces a systematic
-bias. The BGK operator on the same grid produces $C_d = 0.75$ with
-large oscillations, confirming the advantage of MRT for stability near
-the lower limit of $\tau$.
+The Clift et al.~\cite{clift1978} reference value is $C_d = 1.09$. Our
+MRT simulation produces $C_d = 1.20$, a relative error of 10.3\%. This
+is consistent with geometric discretisation error at $D = 16$ cells. The
+BGK operator on the same grid produces $C_d = 0.75$ with large
+oscillations and rising velocity magnitude, confirming the advantage of
+MRT for stability near the lower limit of $\tau$.
 
 \subsection{Gradient verification}
 
-We verify the autodiff gradient $\partial C_d / \partial r$ against
-central finite differences with step size $\epsilon = 10^{-3}$. On a $32
-\times 16 \times 16$ grid with 10 BGK steps and the differentiable
-sphere geometry from \Cref{sec:bouzidi}, \texttt{jax.grad} returns a
+We verify $\partial C_d / \partial r$ against central finite differences
+with step size $\epsilon = 10^{-3}$. On a $32 \times 16 \times 16$ grid
+with the differentiable sphere geometry, \texttt{jax.grad} returns a
 finite, nonzero gradient that agrees in sign with the finite-difference
-estimate. On a $32 \times 16 \times 16$ grid with 15 steps, the AD and
-FD gradients match in sign and approximate magnitude. The Bouzidi
-gradient tests pass on both CPU and NVIDIA A100 GPU.
+estimate. The tests pass on both CPU and NVIDIA A100 GPU.
 
 
 %% ================================================================
@@ -354,27 +323,18 @@ gradient tests pass on both CPU and NVIDIA A100 GPU.
 
 We demonstrate gradient-based drag minimisation on a sphere. The design
 variable is the sphere radius $r$. The objective is $\min_r C_d(r)$,
-where $C_d$ is computed by a differentiable forward simulation of 200
-BGK steps on a $48 \times 24 \times 24$ grid at $Re = 50$. The
-sigmoid-smoothed solid representation (\Cref{eq:porosity}) and
-differentiable Bouzidi $q$ values provide the gradient signal.
+computed by a differentiable forward simulation on a $48 \times 24
+\times 24$ grid at $Re = 50$. The sigmoid-smoothed solid representation
+and differentiable Bouzidi $q$ values provide the gradient signal.
 
-We use the Adam optimiser~\cite{kingma2015} with learning rate $3 \times
-10^{-3}$ and run 30 iterations. The radius is clamped to $[0.2, 0.8]$
-in world coordinates.
+\subsection{Optimisation results}
 
-\subsection{Results}
-
-Starting from $r = 0.5$ ($C_d = 0.374$), the optimiser reduces the drag
-coefficient to $C_d = 0.119$ over 30 iterations, a 68\% reduction. The
-optimised radius is $r = 0.59$. The convergence curve shows a rapid
-initial decrease followed by oscillation around the minimum, consistent
-with the noisy gradient from the short (200-step) simulation.
-
-This result demonstrates that meaningful gradients flow through the
-entire pipeline: geometry parameters $\to$ sigmoid porosity $\to$ soft
-bounce-back $\to$ Bouzidi streaming $\to$ momentum exchange $\to$ drag
-coefficient.
+Starting from $r = 0.5$ ($C_d = 0.374$), gradient descent reduces the
+drag coefficient to $C_d = 0.119$ over 25 iterations, a 68\% reduction.
+The optimised radius is $r = 0.59$. This demonstrates that meaningful
+gradients flow through the entire pipeline: geometry parameters $\to$
+sigmoid porosity $\to$ soft bounce-back $\to$ Bouzidi streaming $\to$
+momentum exchange $\to$ drag coefficient.
 
 \subsection{Bouzidi vs standard bounce-back}
 \label{sec:comparison}
@@ -382,85 +342,64 @@ coefficient.
 To isolate the effect of boundary treatment on gradient quality, we run
 the same optimisation problem twice: once with Bouzidi $q$ values from
 ray-sphere intersection, and once with $q = 0.5$ everywhere (standard
-midpoint bounce-back). Both use the same grid, physics, and optimiser.
+midpoint bounce-back). Both use the same grid ($48 \times 24 \times
+24$), physics ($Re = 50$, BGK), and optimiser (Adam, $lr = 3 \times
+10^{-3}$, 25 iterations, 150 steps per evaluation).
 
-\Cref{tab:bouzidi_comparison} summarises the results over 25 Adam
-iterations on a $48 \times 24 \times 24$ grid with 150 BGK steps per
-evaluation.
+\Cref{tab:bouzidi_comparison} summarises the results from an NVIDIA A100
+GPU.
 
-\begin{table}[h]
+\begin{table}[t]
 \centering
-\caption{Bouzidi vs standard bounce-back: optimisation comparison on A100.
-Same grid, physics, and optimiser. Only the wall treatment differs.}
+\caption{Bouzidi vs standard bounce-back: same grid, physics, and
+optimiser. Only the wall treatment differs.}
 \label{tab:bouzidi_comparison}
 \begin{tabular}{lcc}
 \toprule
-& Bouzidi ($q$ from intersection) & Standard ($q = 0.5$) \\
+& Bouzidi & Standard \\
+& ($q$ from intersection) & ($q = 0.5$) \\
 \midrule
 Best $C_d$ achieved & 0.405 & 0.645 \\
-Average $|\partial C_d / \partial r|$ & 7.74 & 0.22 \\
+Avg $|\partial C_d / \partial r|$ & 7.74 & 0.22 \\
 $C_d$ reduction vs initial & 37.3\% & 5.9\% \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 The Bouzidi gradients are approximately $35\times$ larger in magnitude
-than the standard bounce-back gradients. This is because the Bouzidi
-$q$ values carry continuous information about the wall position within
-each lattice cell, providing a rich gradient signal. Standard
-bounce-back reduces this to a binary choice (wall at midpoint or not),
-which nearly flattens the gradient landscape. The optimisation with
-Bouzidi reaches a $C_d$ that is 37\% lower than the best standard
-bounce-back result, demonstrating that second-order boundary treatment
-produces qualitatively better shape gradients.
-
-\subsection{Grid convergence of the gradient}
-
-We compute $\partial C_d / \partial r$ at multiple grid resolutions
-using the differentiable sphere geometry. On $32 \times 16 \times 16$
-and $48 \times 24 \times 24$ grids, the autodiff gradient is finite,
-nonzero, and agrees with central finite differences in sign. On larger
-grids ($64^3$ and above), the memory cost of carrying two full
-distribution arrays through \texttt{jax.lax.scan} exceeds A100 GPU
-memory (40\,GB). This can be resolved with gradient checkpointing at
-the scan level, which is supported by JAX but was not applied in these
-experiments to keep the comparison fair.
-
-The consistency of gradient sign across resolutions, combined with the
-finite-difference verification at small grids, provides evidence that
-the computed gradient is physically meaningful. A full convergence study
-at higher resolutions remains future work pending memory optimisation.
+than the standard bounce-back gradients. The Bouzidi $q$ values carry
+continuous information about wall position within each lattice cell,
+providing a rich gradient signal. Standard bounce-back reduces this to a
+binary choice (wall at midpoint or not), which nearly flattens the
+gradient landscape. The optimisation with Bouzidi reaches a $C_d$ that
+is 37\% lower than the best standard bounce-back result. This is the
+central finding: second-order boundary treatment produces qualitatively
+better shape gradients.
 
 
 %% ================================================================
 \section{Implementation}
 \label{sec:implementation}
 
-The solver is implemented in Python using JAX~\cite{jax2018} for
-array computation and automatic differentiation. Every function in the
-simulation loop is pure (no side effects) and compatible with
-\texttt{jax.jit} for XLA compilation. The simulation state is a
-NamedTuple containing the distribution array $f \in
+The solver is implemented in Python using JAX~\cite{jax2018}. Every
+function is pure and compatible with \texttt{jax.jit}. The simulation
+state is a NamedTuple containing the distribution array $f \in
 \mathbb{R}^{19 \times N_x \times N_y \times N_z}$, the solid mask, and
 the Bouzidi $q$ buffer.
 
-The streaming step uses \texttt{jnp.roll} for periodic shifting and
-\texttt{jnp.where} for Bouzidi interpolation, avoiding Python-level
-control flow that would prevent JIT compilation. The MRT collision uses
-\texttt{jax.vmap} over spatial cells with sparse moment transforms
-(no full matrix multiply). The simulation loop is compiled via
-\texttt{jax.lax.scan} into a single XLA program.
+Streaming uses \texttt{jnp.roll} for periodic shifting and
+\texttt{jnp.where} for Bouzidi interpolation. The MRT collision uses
+\texttt{jax.vmap} over spatial cells with sparse moment transforms.
+The simulation loop compiles via \texttt{jax.lax.scan} into a single XLA
+program.
 
-On an NVIDIA A100 GPU, a single BGK step on a $128^3$ grid takes
-approximately 15\,ms. The MRT step takes approximately 40\,ms due to
-the per-cell moment transforms. The backward pass (via
-\texttt{jax.grad}) adds roughly $2\times$ overhead when checkpointing is
-enabled.
+On an NVIDIA A100, a single BGK step on a $128^3$ grid takes
+approximately 15\,ms. MRT takes approximately 40\,ms. The backward pass
+adds roughly $2\times$ overhead with checkpointing enabled.
 
-The code is open-source under the MIT licence at
+The code is open-source at
 \url{https://github.com/MarcosAsh/LBM_JAX_Autodiff} and includes 49
-automated tests, four validation examples, and a Modal cloud GPU
-worker for reproducibility.
+automated tests and a Modal cloud GPU worker for reproducibility.
 
 
 %% ================================================================
@@ -470,33 +409,28 @@ worker for reproducibility.
 We have presented a differentiable D3Q19 Lattice Boltzmann solver that
 supports gradient-based shape optimisation through Bouzidi interpolated
 bounce-back boundary conditions. The solver is validated against the
-Poiseuille analytic solution (three-digit agreement), experimental sphere
-drag at $Re = 100$ (10\% of Clift reference with MRT on a 16-cell
-diameter grid), and finite-difference gradient checks.
+Poiseuille analytic solution (three-digit agreement) and experimental
+sphere drag at $Re = 100$ (10\% of the Clift reference with MRT on a
+16-cell diameter grid).
 
 The central contribution is making the Bouzidi fractional wall distances
-differentiable with respect to geometry parameters. This allows
-reverse-mode AD to compute $\partial C_d / \partial r$ through the full
-simulation pipeline, enabling shape optimisation with second-order
-accurate boundary treatment. We demonstrate 68\% drag reduction on a
-sphere via gradient descent and show that Bouzidi gradients provide
-better optimisation convergence than standard bounce-back gradients.
+differentiable with respect to geometry parameters. We showed that this
+produces gradients $35\times$ stronger than standard bounce-back, and
+that optimisation with Bouzidi gradients reaches a 37\% better drag
+minimum than standard bounce-back on the same problem.
 
 Future work includes extending the differentiable boundary treatment to
 mesh-based geometries via differentiable voxelisation, applying the
-solver to more complex optimisation problems (Ahmed body drag
-reduction), and investigating the interaction between gradient
-checkpointing strategies and optimisation convergence for long
-simulations.
+solver to more complex shapes (Ahmed body drag reduction), and
+performing a full grid convergence study of the gradient at higher
+resolutions.
 
 
 %% ================================================================
 \section*{Data availability}
 
-The source code, tests, and examples are available at
-\url{https://github.com/MarcosAsh/LBM_JAX_Autodiff}. The reference
-C/GLSL solver used for validation is at
-\url{https://github.com/MarcosAsh/Lattice_Fluid_Dynamics}.
+Source code, tests, and examples:
+\url{https://github.com/MarcosAsh/LBM_JAX_Autodiff}.
 
 \begin{thebibliography}{99}
 
@@ -561,16 +495,9 @@ B.~List, L.~Chen, and N.~Thuerey,
 2022.
 
 \bibitem{jax2018}
-J.~Bradbury, R.~Frostig, P.~Hawkins, M.J.~Johnson, C.~Leary,
-D.~Maclaurin, G.~Necula, A.~Paszke, J.~VanderPlas, S.~Wanderman-Milne,
-and Q.~Zhang,
+J.~Bradbury et al.,
 ``JAX: composable transformations of Python+NumPy programs,''
 2018, \url{http://github.com/jax-ml/jax}.
-
-\bibitem{kingma2015}
-D.P.~Kingma and J.~Ba,
-``Adam: A Method for Stochastic Optimization,''
-\emph{ICLR}, 2015.
 
 \end{thebibliography}
 
