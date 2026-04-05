@@ -155,6 +155,19 @@ def step(state: LBMState, params: LBMParams) -> LBMState:
     f = zou_he_inlet(f, params.inlet_velocity)
     f = zou_he_outlet(f, rho_out=1.0)
 
+    # Stability guard: reset diverged cells to equilibrium. Matches the
+    # reference solver's guard in lbm_collide.comp. Without this, a single
+    # bad cell can cascade into domain-wide NaN.
+    rho = compute_density(f)
+    u = compute_velocity(f, rho)
+    u_mag = jnp.sqrt(jnp.sum(u * u, axis=0))
+    unstable = (rho < 0.3) | (rho > 2.0) | (u_mag > 0.4) | jnp.isnan(rho)
+    f_eq_reset = equilibrium(
+        jnp.where(unstable, 1.0, rho),
+        jnp.where(unstable[jnp.newaxis, :, :, :], 0.0, u),
+    )
+    f = jnp.where(unstable[jnp.newaxis, :, :, :], f_eq_reset, f)
+
     return LBMState(f=f, solid=state.solid, q=state.q)
 
 
