@@ -39,6 +39,23 @@ Iter  Radius    Cd
 Initial Cd: 0.374  ──►  Final Cd: 0.119  (68% drag reduction)
 ```
 
+## Sphere drag at Re=100 (MRT collision)
+
+128x64x64 grid, D=16 lattice cells, 4000 MRT steps on A100:
+
+```
+  Step      Cd          Fx      max|u|
+  2800    1.0466    0.272109    0.058354
+  3000    1.0094    0.262442    0.058363
+  3200    1.1399    0.296364    0.058643
+  3400    1.1914    0.309771    0.058437
+  3600    1.3701    0.356236    0.057817
+  3800    1.1898    0.309340    0.058620
+  4000    1.2017    0.312454    0.059805
+
+Final Cd: 1.20  |  Clift reference: 1.09  |  Error: 10%
+```
+
 ## Poiseuille flow validation
 
 Steady-state channel flow matches the analytic parabolic profile to 3+ significant figures:
