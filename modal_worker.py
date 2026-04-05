@@ -43,6 +43,10 @@ def run_example(name: str):
         "inlet": "examples/03_optimize_inlet.py",
         "optimize": "examples/04_shape_optimization.py",
         "sphere-mrt": "examples/05_sphere_cd_mrt.py",
+        "optimize-adam": "examples/06_shape_optimization_adam.py",
+        "bouzidi-vs-standard": "examples/07_bouzidi_vs_standard.py",
+        "grad-convergence": "examples/08_gradient_convergence.py",
+        "sphere-fine": "examples/09_sphere_cd_fine_grid.py",
     }
 
     if name not in examples:
