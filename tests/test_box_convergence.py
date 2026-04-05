@@ -25,8 +25,8 @@ from jax_lbm.geometry.primitives import create_box
 
 def _run_box_cd(nx, ny, nz, n_steps):
     """Run a box drag simulation and return Cd."""
-    # Box centered in the domain, 1/4 of the domain width.
-    box_half = 0.3
+    # Box centered in the domain.
+    box_half = 0.4
     solid, q = create_box(
         nx, ny, nz,
         corner_min=(-box_half, -box_half, -box_half),
@@ -34,9 +34,8 @@ def _run_box_cd(nx, ny, nz, n_steps):
     )
 
     u_inlet = 0.05
-    scale_x = nx / 8.0
     D_lattice = 2.0 * box_half * (ny / 4.0)  # box width in lattice cells
-    re = 50.0
+    re = 20.0  # low Re for stability with sharp corners
     nu = u_inlet * D_lattice / re
     tau = jnp.float32(3.0 * nu + 0.5)
 
@@ -79,23 +78,31 @@ class TestBoxConvergence:
 
     @pytest.mark.slow
     def test_cd_values_positive(self):
-        """Cd should be positive at all resolutions."""
-        cd = _run_box_cd(32, 16, 16, n_steps=300)
+        """Cd should be positive after enough steps for wake to develop."""
+        cd = _run_box_cd(64, 32, 32, n_steps=800)
         assert cd > 0.0, f"Cd should be positive, got {cd}"
+        assert cd < 20.0, f"Cd={cd:.4f} implausibly large"
 
     @pytest.mark.slow
     def test_convergence_consistency(self):
         """Cd at different sample times should stabilize.
 
-        Run 5 measurements at 100-step intervals on the same grid. All
-        should be positive, and the spread should be within 10x of the
-        mean (loose tolerance for a short run).
+        Run a warm-up phase (1000 steps) to let the initial transient
+        die out, then take 5 measurements at 200-step intervals. The
+        Cd values should be positive and within 5x of each other once
+        the flow is near steady state.
+
+        Grid: 64x32x32, box side = 0.8 world units -> ~6.4 lattice
+        cells across. Re = 20 (tau = 0.548, safely above stability
+        limit). Box corners create recirculation zones that need
+        O(1000) steps to develop on this grid.
         """
-        nx, ny, nz = 48, 24, 24
-        n_per_sample = 100
+        nx, ny, nz = 64, 32, 32
+        n_warmup = 1000
+        n_per_sample = 200
         n_samples = 5
 
-        box_half = 0.3
+        box_half = 0.4
         solid, q = create_box(
             nx, ny, nz,
             corner_min=(-box_half, -box_half, -box_half),
@@ -103,10 +110,10 @@ class TestBoxConvergence:
         )
 
         u_inlet = 0.05
-        D_lattice = 2.0 * box_half * (ny / 4.0)
-        re = 50.0
+        D_lattice = 2.0 * box_half * (ny / 4.0)  # 6.4 cells
+        re = 20.0
         nu = u_inlet * D_lattice / re
-        tau = jnp.float32(3.0 * nu + 0.5)
+        tau = jnp.float32(3.0 * nu + 0.5)  # 0.548
 
         rho = jnp.ones((nx, ny, nz))
         u = jnp.zeros((3, nx, ny, nz)).at[0].set(u_inlet)
@@ -134,6 +141,10 @@ class TestBoxConvergence:
             f_s = jnp.where(bad[None], f_eq_r, f_s)
             return (f_s, f_post), None
 
+        # Warm up: let the transient die out before measuring.
+        (f, _), _ = jax.lax.scan(step_fn, (f, f), None, length=n_warmup)
+
+        # Sample Cd at intervals after warm-up.
         cd_samples = []
         for _ in range(n_samples):
             (f, f_post), _ = jax.lax.scan(step_fn, (f, f), None, length=n_per_sample)
@@ -141,13 +152,14 @@ class TestBoxConvergence:
             cd = float(drag_coefficient(force, u_inlet, area))
             cd_samples.append(cd)
 
-        # All finite and positive.
-        finite_cds = [cd for cd in cd_samples if not np.isnan(cd) and cd > 0]
-        assert len(finite_cds) >= 3, f"Too few valid Cd values: {cd_samples}"
+        # All should be finite and positive after warm-up.
+        assert all(not np.isnan(cd) for cd in cd_samples), f"NaN in Cd: {cd_samples}"
+        assert all(cd > 0 for cd in cd_samples), f"Negative Cd: {cd_samples}"
 
-        # Spread within 10x of each other (loose for short run).
-        cd_max = max(finite_cds)
-        cd_min = min(finite_cds)
-        assert cd_max < 10 * cd_min, (
-            f"Cd spread too wide: min={cd_min:.4f}, max={cd_max:.4f}"
+        # After 1000 warm-up steps, the spread should be within 5x.
+        cd_max = max(cd_samples)
+        cd_min = min(cd_samples)
+        assert cd_max < 5 * cd_min, (
+            f"Cd not converged: min={cd_min:.4f}, max={cd_max:.4f}, "
+            f"samples={[f'{c:.4f}' for c in cd_samples]}"
         )
