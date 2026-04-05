@@ -48,17 +48,17 @@ def _run_box_cd(nx, ny, nz, n_steps):
     opp_arr = jnp.array([int(x) for x in np.asarray(D3Q19_OPPOSITE)])
     is_solid = (solid >= 1)[jnp.newaxis, :, :, :]
 
-    def step_fn(f_in, _):
+    def step_fn(carry, _):
+        f_in, _ = carry
         f_c = bgk(f_in, tau)
         f_c = jnp.where(is_solid, f_c[opp_arr], f_c)
         f_post = f_c
         f_s = stream(f_c, q, periodic_yz=True)
         f_s = zou_he_inlet(f_s, vel)
         f_s = zou_he_outlet(f_s, rho_out=1.0)
-        return f_s, f_post
+        return (f_s, f_post), None
 
-    f_final, f_posts = jax.lax.scan(step_fn, f, None, length=n_steps)
-    f_post = jax.tree.map(lambda x: x[-1], f_posts)
+    (f_final, f_post), _ = jax.lax.scan(step_fn, (f, f), None, length=n_steps)
 
     force = momentum_exchange(f_post, f_final, q)
     area = projected_area(solid, axis=0)
@@ -109,19 +109,19 @@ class TestBoxConvergence:
         is_solid = (solid >= 1)[jnp.newaxis, :, :, :]
         area = projected_area(solid, axis=0)
 
-        def step_fn(f_in, _):
+        def step_fn(carry, _):
+            f_in, _ = carry
             f_c = bgk(f_in, tau)
             f_c = jnp.where(is_solid, f_c[opp_arr], f_c)
             f_post = f_c
             f_s = stream(f_c, q, periodic_yz=True)
             f_s = zou_he_inlet(f_s, vel)
             f_s = zou_he_outlet(f_s, rho_out=1.0)
-            return f_s, f_post
+            return (f_s, f_post), None
 
         cd_samples = []
         for _ in range(n_samples):
-            f, f_posts = jax.lax.scan(step_fn, f, None, length=n_per_sample)
-            f_post = jax.tree.map(lambda x: x[-1], f_posts)
+            (f, f_post), _ = jax.lax.scan(step_fn, (f, f), None, length=n_per_sample)
             force = momentum_exchange(f_post, f, q)
             cd = float(drag_coefficient(force, u_inlet, area))
             cd_samples.append(cd)

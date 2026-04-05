@@ -57,14 +57,15 @@ def main():
     is_solid = (solid >= 1)[jnp.newaxis, :, :, :]
     tau_val = jnp.float32(tau)
 
-    def step_fn(f_in, _):
+    def step_fn(carry, _):
+        f_in, _ = carry
         f_c = bgk(f_in, tau_val)
         f_c = jnp.where(is_solid, f_c[opp_arr], f_c)
         f_post = f_c
         f_s = stream(f_c, q, periodic_yz=True)
         f_s = zou_he_inlet(f_s, vel)
         f_s = zou_he_outlet(f_s, rho_out=1.0)
-        return f_s, f_post
+        return (f_s, f_post), None
 
     n_steps = 4000
     chunk = 200
@@ -75,8 +76,7 @@ def main():
 
     for start in range(0, n_steps, chunk):
         length = min(chunk, n_steps - start)
-        f, f_posts = jax.lax.scan(step_fn, f, None, length=length)
-        f_post = jax.tree.map(lambda x: x[-1], f_posts)
+        (f, f_post), _ = jax.lax.scan(step_fn, (f, f), None, length=length)
 
         force = momentum_exchange(f_post, f, q)
         cd = drag_coefficient(force, u_inlet, area)

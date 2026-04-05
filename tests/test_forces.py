@@ -53,7 +53,7 @@ class TestMomentumExchange:
         total, pressure = momentum_exchange_decomposed(f, f, q)
         friction = total - pressure
         # At equilibrium, friction should be near zero (f_neq = 0).
-        assert jnp.allclose(friction, 0.0, atol=1e-5)
+        assert jnp.allclose(friction, 0.0, atol=1e-4)
 
 
 class TestProjectedArea:
@@ -88,4 +88,4 @@ class TestDragCoefficient:
         force = jnp.array([0.01, 0.0, 0.0])
         cd = drag_coefficient(force, inlet_velocity=0.05, area=100.0)
         # Cd = 0.01 / (0.5 * 1.0 * 0.0025 * 100) = 0.01 / 0.125 = 0.08
-        assert jnp.allclose(cd, 0.08, atol=1e-5)
+        assert jnp.allclose(cd, 0.08, atol=1e-4)

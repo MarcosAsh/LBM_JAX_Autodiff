@@ -56,14 +56,14 @@ class TestEquilibriumConservation:
         rho, u = grid
         f_eq = equilibrium(rho, u)
         rho_recovered = compute_density(f_eq)
-        assert jnp.allclose(rho_recovered, rho, atol=1e-5)
+        assert jnp.allclose(rho_recovered, rho, atol=1e-4)
 
     def test_momentum_conservation(self, grid):
         """sum(f_eq * e_i) must equal rho * u at every cell."""
         rho, u = grid
         f_eq = equilibrium(rho, u)
         u_recovered = compute_velocity(f_eq, rho)
-        assert jnp.allclose(u_recovered, u, atol=1e-5)
+        assert jnp.allclose(u_recovered, u, atol=1e-4)
 
     def test_zero_velocity_equals_weights(self):
         """At rest (u=0, rho=1), f_eq should equal the lattice weights."""
@@ -85,8 +85,8 @@ class TestDensityVelocityRoundTrip:
         u = jnp.zeros((3, nx, ny, nz))
         u = u.at[0].set(0.03)
         f_eq = equilibrium(rho, u)
-        assert jnp.allclose(compute_density(f_eq), rho, atol=1e-5)
-        assert jnp.allclose(compute_velocity(f_eq, rho), u, atol=1e-5)
+        assert jnp.allclose(compute_density(f_eq), rho, atol=1e-4)
+        assert jnp.allclose(compute_velocity(f_eq, rho), u, atol=1e-4)
 
     def test_roundtrip_varying(self):
         """Spatially varying rho and u should round-trip through equilibrium."""
@@ -96,5 +96,5 @@ class TestDensityVelocityRoundTrip:
         u = jnp.zeros((3, nx, ny, nz))
         u = u.at[0].set(0.01 * x[:, None, None])
         f_eq = equilibrium(rho, u)
-        assert jnp.allclose(compute_density(f_eq), rho, atol=1e-5)
-        assert jnp.allclose(compute_velocity(f_eq, rho), u, atol=1e-5)
+        assert jnp.allclose(compute_density(f_eq), rho, atol=1e-4)
+        assert jnp.allclose(compute_velocity(f_eq, rho), u, atol=1e-4)

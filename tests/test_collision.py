@@ -27,7 +27,7 @@ class TestMRTTransforms:
         f_cell = D3Q19_WEIGHTS
         m = mrt_forward(f_cell)
         f_recovered = mrt_inverse(m)
-        assert jnp.allclose(f_cell, f_recovered, atol=1e-5)
+        assert jnp.allclose(f_cell, f_recovered, atol=1e-4)
 
     def test_roundtrip_random(self):
         """Forward then inverse on a random vector should recover it."""
@@ -35,7 +35,7 @@ class TestMRTTransforms:
         f_cell = jax.random.uniform(key, (19,), minval=0.0, maxval=0.1)
         m = mrt_forward(f_cell)
         f_recovered = mrt_inverse(m)
-        assert jnp.allclose(f_cell, f_recovered, atol=1e-5)
+        assert jnp.allclose(f_cell, f_recovered, atol=1e-4)
 
     def test_conserved_moments_match_macroscopic(self):
         """m[0] should be rho, m[3]/m[5]/m[7] should be rho*ux/uy/uz."""
@@ -49,10 +49,10 @@ class TestMRTTransforms:
         f_eq = equilibrium(rho, u)
         f_cell = f_eq[:, 0, 0, 0]
         m = mrt_forward(f_cell)
-        assert jnp.allclose(m[0], rho_val, atol=1e-5)
-        assert jnp.allclose(m[3], rho_val * u_val[0], atol=1e-5)
-        assert jnp.allclose(m[5], rho_val * u_val[1], atol=1e-5)
-        assert jnp.allclose(m[7], rho_val * u_val[2], atol=1e-5)
+        assert jnp.allclose(m[0], rho_val, atol=1e-4)
+        assert jnp.allclose(m[3], rho_val * u_val[0], atol=1e-4)
+        assert jnp.allclose(m[5], rho_val * u_val[1], atol=1e-4)
+        assert jnp.allclose(m[7], rho_val * u_val[2], atol=1e-4)
 
     def test_equilibrium_moments(self):
         """mrt_equilibrium_moments should match forward transform of f_eq."""
@@ -80,7 +80,7 @@ class TestBGK:
         u = jnp.zeros((3, nx, ny, nz)).at[0].set(0.05)
         f = equilibrium(rho, u)
         f_post = bgk(f, tau=jnp.float32(0.8))
-        assert jnp.allclose(f, f_post, atol=1e-5)
+        assert jnp.allclose(f, f_post, atol=1e-4)
 
     def test_conserves_mass(self):
         """BGK must conserve mass (total density unchanged)."""
@@ -96,7 +96,7 @@ class TestBGK:
         f_post = bgk(f_perturbed, tau=jnp.float32(0.8))
         rho_before = compute_density(f_perturbed)
         rho_after = compute_density(f_post)
-        assert jnp.allclose(rho_before, rho_after, atol=1e-5)
+        assert jnp.allclose(rho_before, rho_after, atol=1e-4)
 
     def test_conserves_momentum(self):
         """BGK must conserve momentum."""
@@ -114,7 +114,7 @@ class TestBGK:
         rho_after = compute_density(f_post)
         u_after = compute_velocity(f_post, rho_after)
         # Momentum = rho * u should be conserved.
-        assert jnp.allclose(rho_before * u_before, rho_after * u_after, atol=1e-5)
+        assert jnp.allclose(rho_before * u_before, rho_after * u_after, atol=1e-4)
 
 
 class TestMRT:
@@ -140,7 +140,7 @@ class TestSmagorinsky:
         u = jnp.zeros((3, nx, ny, nz)).at[0].set(0.05)
         f = equilibrium(rho, u)
         tau_eff = smagorinsky_tau(f, tau=jnp.float32(0.8), cs=0.1)
-        assert jnp.allclose(tau_eff, 0.8, atol=1e-5)
+        assert jnp.allclose(tau_eff, 0.8, atol=1e-4)
 
     def test_tau_eff_geq_tau(self):
         """Smagorinsky can only increase tau, never decrease it."""

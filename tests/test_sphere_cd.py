@@ -76,17 +76,18 @@ def _run_sphere_drag(nx, ny, nz, n_steps, u_inlet=0.05, re=100.0):
     is_solid = (solid >= 1)[jnp.newaxis, :, :, :]
     tau_val = jnp.float32(tau)
 
-    def step_fn(f_in, _):
+    # Carry both f and f_post in state to avoid storing all intermediates.
+    def step_fn(carry, _):
+        f_in, _ = carry
         f_c = bgk(f_in, tau_val)
         f_c = jnp.where(is_solid, f_c[opp_arr], f_c)
         f_post = f_c
         f_s = stream(f_c, q, periodic_yz=True)
         f_s = zou_he_inlet(f_s, vel)
         f_s = zou_he_outlet(f_s, rho_out=1.0)
-        return f_s, f_post
+        return (f_s, f_post), None
 
-    f, f_posts = jax.lax.scan(step_fn, f, None, length=n_steps)
-    f_post = jax.tree.map(lambda x: x[-1], f_posts)
+    (f, f_post), _ = jax.lax.scan(step_fn, (f, f), None, length=n_steps)
 
     # Compute force and Cd.
     force = momentum_exchange(f_post, f, q)
