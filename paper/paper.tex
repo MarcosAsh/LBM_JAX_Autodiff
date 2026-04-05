@@ -311,13 +311,19 @@ MRT for stability near the lower limit of $\tau$.
 \subsection{Gradient verification}
 
 We verify the autodiff gradients against central finite differences in
-float64 arithmetic (\texttt{jax\_enable\_x64=True}).
+float64 arithmetic (\texttt{jax\_enable\_x64=True}) on CPU. (Float64
+verification requires the flag to be set before JAX is imported, which
+is straightforward on CPU but incompatible with the Modal GPU
+environment where the package is pre-imported during image build. The
+solver itself runs on GPU in float32; the float64 check establishes
+gradient correctness independently of hardware rounding.)
 \Cref{tab:gradients} reports the results. The multi-step gradient
 (5 LBM steps, $\partial \bar{\rho} / \partial U$) agrees to a relative
 error of $1.9 \times 10^{-9}$. The Bouzidi gradient ($\partial C_d /
 \partial r$ through 10 steps of differentiable streaming with
-ray-sphere $q$ values) agrees to $9.0 \times 10^{-10}$. These results
-confirm that the autodiff chain through collision, Bouzidi streaming,
+ray-sphere $q$ values) agrees to $9.0 \times 10^{-10}$. A dtype guard
+inside the test confirms genuine float64 execution. These results
+verify that the autodiff chain through collision, Bouzidi streaming,
 boundary conditions, and momentum exchange is correct.
 
 \begin{table}[t]

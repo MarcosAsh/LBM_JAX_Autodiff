@@ -18,7 +18,7 @@ import pytest
 # package during build). These tests are verified locally.
 pytestmark = pytest.mark.skipif(
     not jax.config.x64_enabled,
-    reason="float64 not enabled (JAX imported before JAX_ENABLE_X64 was set)",
+    reason="x64 mode requires JAX_ENABLE_X64 set before import; not supported in Modal GPU environment",
 )
 
 from jax_lbm.core.equilibrium import equilibrium, compute_density, compute_velocity
@@ -32,7 +32,18 @@ def _central_difference(f, x, eps=1e-5):
 
 
 class TestFloat64Gradients:
-    """Gradient checks in float64 for publication-quality verification."""
+    """Gradient checks in float64 for publication-quality verification.
+
+    These tests confirm that autodiff gradients match finite differences
+    to high precision. Run on CPU with JAX_ENABLE_X64=True. Not run on
+    Modal GPU because the env var must be set before JAX is imported.
+    """
+
+    def test_dtype_is_genuine_f64(self):
+        """Guard: confirm we are actually running in float64, not silently
+        falling back to float32."""
+        x = jnp.ones(1, dtype=jnp.float64)
+        assert x.dtype == jnp.float64, f"Expected float64, got {x.dtype}"
 
     def test_equilibrium_grad_f64(self):
         """d(sum f_eq)/d(rho) should equal N_cells exactly in f64."""
