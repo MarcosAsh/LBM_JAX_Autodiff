@@ -42,6 +42,7 @@ def run_example(name: str):
         "sphere": "examples/02_sphere_drag.py",
         "inlet": "examples/03_optimize_inlet.py",
         "optimize": "examples/04_shape_optimization.py",
+        "sphere-mrt": "examples/05_sphere_cd_mrt.py",
     }
 
     if name not in examples:
