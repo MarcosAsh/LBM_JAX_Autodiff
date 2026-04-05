@@ -34,11 +34,13 @@ This is in contrast to prior work that either uses first-order standard
 bounce-back (which provides no useful shape gradient) or treats wall
 distances as fixed. We validate the solver against the analytic
 Poiseuille flow solution and experimental sphere drag data at $Re = 100$
-(Clift et al.\ 1978). We demonstrate gradient-based drag minimisation on
-a sphere, achieving 68\% drag reduction, and show that Bouzidi boundary
+(Clift et al.\ 1978). On a controlled comparison, Bouzidi boundary
 gradients are approximately $35\times$ stronger than standard bounce-back
-gradients, producing a 37\% better optimum. The solver, including BGK and
-MRT collision operators, is open-source at
+gradients, and shape optimisation with Bouzidi reaches a 37\% lower drag
+than the same optimisation with standard bounce-back. Gradient
+correctness is verified against finite differences in float64 to
+relative errors below $10^{-9}$. The solver, including BGK and MRT
+collision operators, is open-source at
 \url{https://github.com/MarcosAsh/LBM_JAX_Autodiff}.
 
 \smallskip\noindent\textbf{Keywords:}
@@ -308,17 +310,33 @@ MRT for stability near the lower limit of $\tau$.
 
 \subsection{Gradient verification}
 
-We verify $\partial C_d / \partial r$ against central finite differences
-with step size $\epsilon = 10^{-3}$. On a $32 \times 16 \times 16$ grid
-with 15 BGK steps and the differentiable sphere geometry from
-\Cref{sec:bouzidi}, the autodiff gradient and finite-difference estimate
-agree in sign. The absolute values are small (order $10^{-1}$) and the
-relative discrepancy between AD and FD is below 50\%, which is
-acceptable given float32 arithmetic and the short simulation (FD noise
-dominates at small step counts). The gradient is finite and nonzero on
-both CPU and NVIDIA A100 GPU. A more precise comparison is difficult
-with float32 because the FD step size ($10^{-3}$) interacts with the
-rounding error accumulated over multiple LBM steps.
+We verify the autodiff gradients against central finite differences in
+float64 arithmetic (\texttt{jax\_enable\_x64=True}).
+\Cref{tab:gradients} reports the results. The multi-step gradient
+(5 LBM steps, $\partial \bar{\rho} / \partial U$) agrees to a relative
+error of $1.9 \times 10^{-9}$. The Bouzidi gradient ($\partial C_d /
+\partial r$ through 10 steps of differentiable streaming with
+ray-sphere $q$ values) agrees to $9.0 \times 10^{-10}$. These results
+confirm that the autodiff chain through collision, Bouzidi streaming,
+boundary conditions, and momentum exchange is correct.
+
+\begin{table}[t]
+\centering
+\caption{Gradient verification in float64. Central finite differences
+with $\epsilon = 10^{-7}$ (equilibrium, multi-step) or $10^{-6}$
+(Bouzidi). Grid $32 \times 16 \times 16$ for Bouzidi,
+$8 \times 4 \times 4$ for multi-step.}
+\label{tab:gradients}
+\begin{tabular}{lccc}
+\toprule
+Quantity & AD & FD & Rel.\ error \\
+\midrule
+$\partial (\sum f^{eq}) / \partial \rho$ & 64.000 & 64.000 & $6.2 \times 10^{-8}$ \\
+$\partial \bar{\rho} / \partial U$ (5 steps) & 0.6112 & 0.6112 & $1.9 \times 10^{-9}$ \\
+$\partial C_d / \partial r$ (Bouzidi, 10 steps) & 93.33 & 93.33 & $9.0 \times 10^{-10}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 
 %% ================================================================
@@ -339,15 +357,17 @@ iterations, clamping the radius to $[0.2, 0.8]$.
 \subsection{Optimisation results}
 
 Starting from $r = 0.5$ ($C_d = 0.431$), Adam with Bouzidi boundary
-gradients reduces the drag coefficient to $C_d = 0.405$ over 25
-iterations. The trajectory is non-monotonic due to the short simulation
-length (150 steps does not reach full steady state), but the best
-achieved $C_d$ represents a clear improvement over the initial value.
-With longer simulations (100 steps per evaluation on a separate run),
-the reduction reaches 68\% ($C_d = 0.119$ from $C_d = 0.374$). The key
-point is that meaningful gradients flow through the entire pipeline:
-geometry parameters $\to$ sigmoid porosity $\to$ soft bounce-back $\to$
-Bouzidi streaming $\to$ momentum exchange $\to$ drag coefficient.
+gradients reduces the drag coefficient to a best of $C_d = 0.405$ over
+25 iterations, a 6\% reduction. The trajectory is non-monotonic because
+150 BGK steps is not enough to reach full steady state at each
+evaluation, introducing noise in the gradient. Longer simulations per
+evaluation or a warm-start strategy (initialising from the previous
+converged state) would improve convergence. The key result is that
+meaningful gradients flow through the full pipeline: geometry $\to$
+sigmoid porosity $\to$ soft bounce-back $\to$ Bouzidi streaming $\to$
+momentum exchange $\to$ $C_d$. The controlled comparison in
+\Cref{sec:comparison} isolates the boundary treatment effect more
+cleanly.
 
 \subsection{Bouzidi vs standard bounce-back}
 \label{sec:comparison}
@@ -428,15 +448,16 @@ automated tests and a Modal cloud GPU worker for reproducibility.
 We have presented a differentiable D3Q19 Lattice Boltzmann solver that
 supports gradient-based shape optimisation through Bouzidi interpolated
 bounce-back boundary conditions. The solver is validated against the
-Poiseuille analytic solution (three-digit agreement) and experimental
-sphere drag at $Re = 100$ (10\% of the Clift reference with MRT on a
-16-cell diameter grid).
+Poiseuille analytic solution (L2 error 0.38\%) and experimental sphere
+drag at $Re = 100$ (10\% of the Clift reference with MRT on a 16-cell
+diameter grid). Gradient correctness is verified against finite
+differences in float64 to relative errors below $10^{-9}$.
 
 The central contribution is making the Bouzidi fractional wall distances
-differentiable with respect to geometry parameters. We showed that this
-produces gradients $35\times$ stronger than standard bounce-back, and
-that optimisation with Bouzidi gradients reaches a 37\% better drag
-minimum than standard bounce-back on the same problem.
+differentiable with respect to geometry parameters. On a controlled
+comparison, Bouzidi gradients are $35\times$ stronger than standard
+bounce-back gradients, and optimisation with Bouzidi reaches a 37\%
+lower drag minimum than the same optimisation with standard bounce-back.
 
 Future work includes extending the differentiable boundary treatment to
 mesh-based geometries via differentiable voxelisation, applying the

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2026/dev/Arch Linux) (preloaded format=pdflatex 2026.2.19)  5 APR 2026 17:22
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2026/dev/Arch Linux) (preloaded format=pdflatex 2026.2.19)  5 APR 2026 17:28
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -452,7 +452,7 @@ LaTeX Font Info:    Trying to load font information for U+msb on input line 36.
 (/usr/share/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
-Underfull \hbox (badness 1371) in paragraph at lines 44--47
+Underfull \hbox (badness 1371) in paragraph at lines 46--49
 \OT1/cmr/bx/n/9 Keywords: \OT1/cmr/m/n/9 lat-tice Boltz-mann method, au-to-
  []
 
@@ -466,12 +466,12 @@ Underfull \hbox (badness 1371) in paragraph at lines 44--47
 ]
 
 
-Underfull \hbox (badness 1102) in paragraph at lines 227--229
+Underfull \hbox (badness 1102) in paragraph at lines 229--231
 []\OT1/cmr/m/n/10 This pro-vides a dif-fer-en-tiable path through col-li-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 232--238
+Underfull \hbox (badness 10000) in paragraph at lines 234--240
 \OT1/cmr/m/n/10 We use the Mei-Luo-Shyy mo-men-tum ex-change
  []
 
@@ -480,47 +480,58 @@ Underfull \hbox (badness 10000) in paragraph at lines 232--238
 [2]
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 296.
+(hyperref)                removing `math shift' on input line 298.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 296.
+(hyperref)                removing `math shift' on input line 298.
 
 
 
 
-Overfull \hbox (18.44705pt too wide) in paragraph at lines 370--380
+Overfull \hbox (26.89262pt too wide) in paragraph at lines 330--339
+ [][] 
+ []
+
+
+Overfull \hbox (18.44705pt too wide) in paragraph at lines 390--400
  [][] 
  []
 
 
 
 [3]
-Underfull \hbox (badness 1430) in paragraph at lines 441--446
+
+
+Underfull \hbox (badness 1430) in paragraph at lines 462--467
 []\OT1/cmr/m/n/10 Future work in-cludes ex-tend-ing the dif-fer-en-tiable
  []
 
 
-
-
-Underfull \hbox (badness 6608) in paragraph at lines 457--460
+Underfull \hbox (badness 6608) in paragraph at lines 478--481
 []\OT1/cmr/m/n/10 T. Kr^^?uger, H. Kusumaat-maja, A. Kuzmin,
  []
 
 
-Underfull \hbox (badness 1642) in paragraph at lines 462--465
+Underfull \hbox (badness 1642) in paragraph at lines 483--486
 \OT1/cmr/m/n/10 pa-ram-e-ter iden-ti-fi-ca-tion,'' \OT1/cmr/m/it/10 Com-put-ers
  & Flu-ids\OT1/cmr/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 3758) in paragraph at lines 467--471
+Underfull \hbox (badness 3758) in paragraph at lines 488--492
 []\OT1/cmr/m/n/10 M.J. Krause, G. Th^^?ater, and V. Heuve-line,
  []
 
 
 
-[4] (./paper.aux)
+[4]
+
+
+
+[5
+
+] (./paper.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
@@ -529,13 +540,13 @@ Package rerunfilecheck Info: File `paper.out' has not changed.
 (rerunfilecheck)             Checksum: F58703C46283BB5D1450FBB3605764FA;3359.
  ) 
 Here is how much of TeX's memory you used:
- 12634 strings out of 475171
- 202353 string characters out of 5767095
- 630974 words of memory out of 5000000
- 35434 multiletter control sequences out of 15000+600000
+ 12639 strings out of 475171
+ 202419 string characters out of 5767095
+ 631974 words of memory out of 5000000
+ 35437 multiletter control sequences out of 15000+600000
  570781 words of font info for 82 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 75i,9n,79p,283b,444s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,11n,79p,359b,561s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/
 texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texmf-dist/fon
 ts/type1/public/amsfonts/cm/cmbx9.pfb></usr/share/texmf-dist/fonts/type1/public
@@ -545,19 +556,20 @@ r/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr/share/texmf-d
 ist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texmf-dist/fonts/type1
 /public/amsfonts/cm/cmmi9.pfb></usr/share/texmf-dist/fonts/type1/public/amsfont
 s/cm/cmr10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb>
-</usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texm
-f-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/share/texmf-dist/fonts/typ
-e1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/amsf
-onts/cm/cmsy5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.p
-fb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/share/
-texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/share/texmf-dist/fon
-ts/type1/public/amsfonts/cm/cmtt10.pfb></usr/share/texmf-dist/fonts/type1/publi
-c/amsfonts/cm/cmtt9.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/symb
-ols/msbm10.pfb>
-Output written on paper.pdf (4 pages, 281853 bytes).
+</usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texm
+f-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texmf-dist/fonts/typ
+e1/public/amsfonts/cm/cmr9.pfb></usr/share/texmf-dist/fonts/type1/public/amsfon
+ts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pf
+b></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/share/t
+exmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texmf-dist/fonts
+/type1/public/amsfonts/cm/cmsy9.pfb></usr/share/texmf-dist/fonts/type1/public/a
+msfonts/cm/cmti10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmt
+t10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb></usr/s
+hare/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
+Output written on paper.pdf (5 pages, 300414 bytes).
 PDF statistics:
- 280 PDF objects out of 1000 (max. 8388607)
- 229 compressed objects within 3 object streams
- 51 named destinations out of 1000 (max. 500000)
+ 296 PDF objects out of 1000 (max. 8388607)
+ 240 compressed objects within 3 object streams
+ 53 named destinations out of 1000 (max. 500000)
  169 words of extra memory for PDF output out of 10000 (max. 10000000)
 
