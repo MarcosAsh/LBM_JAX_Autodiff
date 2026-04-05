@@ -1,0 +1,83 @@
+site_name: JAX LBM
+site_description: Differentiable 3D Lattice Boltzmann solver in JAX
+repo_url: https://github.com/MarcosAsh/LBM_JAX_Autodiff
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.expand
+    - navigation.indexes
+    - content.code.copy
+    - content.code.annotate
+    - search.highlight
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: true
+            show_root_heading: true
+            heading_level: 3
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      permalink: true
+
+extra_javascript:
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting_started/installation.md
+    - First Simulation: getting_started/first_simulation.md
+    - First Optimization: getting_started/first_optimization.md
+  - Guides:
+    - Lattice Boltzmann Method: guides/lattice_boltzmann.md
+    - Differentiable LBM: guides/differentiable_lbm.md
+    - Checkpointing: guides/checkpointing.md
+    - Geometry: guides/geometry.md
+    - Validation: guides/validation.md
+  - API Reference:
+    - Core:
+      - Lattice: api/core/lattice.md
+      - Equilibrium: api/core/equilibrium.md
+      - Collision: api/core/collision.md
+      - Streaming: api/core/streaming.md
+      - Boundary: api/core/boundary.md
+      - Forces: api/core/forces.md
+    - Geometry:
+      - Primitives: api/core/primitives.md
+      - Bouzidi: api/geometry/bouzidi.md
+      - Smooth: api/geometry/smooth.md
+  - Examples:
+    - Channel Flow: examples/channel_flow.md
+    - Sphere Drag: examples/sphere_drag.md
+    - Inlet Optimization: examples/inlet_optimization.md
+    - Shape Optimization: examples/shape_optimization.md
