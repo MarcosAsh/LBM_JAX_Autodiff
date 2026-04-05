@@ -8,6 +8,7 @@ Usage:
     python examples/02_sphere_drag.py
 """
 
+import jax
 import jax.numpy as jnp
 import numpy as np
 
@@ -53,38 +54,36 @@ def main():
     vel = jnp.array([u_inlet, 0.0, 0.0])
 
     opp_arr = jnp.array([int(x) for x in np.asarray(D3Q19_OPPOSITE)])
+    is_solid = (solid >= 1)[jnp.newaxis, :, :, :]
     tau_val = jnp.float32(tau)
 
+    def step_fn(f_in, _):
+        f_c = bgk(f_in, tau_val)
+        f_c = jnp.where(is_solid, f_c[opp_arr], f_c)
+        f_post = f_c
+        f_s = stream(f_c, q, periodic_yz=True)
+        f_s = zou_he_inlet(f_s, vel)
+        f_s = zou_he_outlet(f_s, rho_out=1.0)
+        return f_s, f_post
+
     n_steps = 4000
-    print_interval = 200
-    force_interval = 100
+    chunk = 200
 
     print(f"Running {n_steps} steps...")
     print(f"{'Step':>6s}  {'Cd':>10s}  {'Fx':>12s}  {'max|u|':>10s}")
     print("-" * 44)
 
-    for i in range(n_steps):
-        f = bgk(f, tau_val)
+    for start in range(0, n_steps, chunk):
+        length = min(chunk, n_steps - start)
+        f, f_posts = jax.lax.scan(step_fn, f, None, length=length)
+        f_post = jax.tree.map(lambda x: x[-1], f_posts)
 
-        f_bounced = f[opp_arr]
-        is_solid = (solid >= 1)[jnp.newaxis, :, :, :]
-        f = jnp.where(is_solid, f_bounced, f)
-
-        f_post = f
-
-        f = stream(f, q, periodic_yz=True)
-        f = zou_he_inlet(f, vel)
-        f = zou_he_outlet(f, rho_out=1.0)
-
-        if (i + 1) % force_interval == 0:
-            force = momentum_exchange(f_post, f, q)
-            cd = drag_coefficient(force, u_inlet, area)
-
-            if (i + 1) % print_interval == 0:
-                rho_now = compute_density(f)
-                u_now = compute_velocity(f, rho_now)
-                max_u = float(jnp.max(jnp.sqrt(jnp.sum(u_now ** 2, axis=0))))
-                print(f"{i+1:6d}  {float(cd):10.4f}  {float(force[0]):12.6f}  {max_u:10.6f}")
+        force = momentum_exchange(f_post, f, q)
+        cd = drag_coefficient(force, u_inlet, area)
+        rho_now = compute_density(f)
+        u_now = compute_velocity(f, rho_now)
+        max_u = float(jnp.max(jnp.sqrt(jnp.sum(u_now ** 2, axis=0))))
+        print(f"{start + length:6d}  {float(cd):10.4f}  {float(force[0]):12.6f}  {max_u:10.6f}")
 
     print()
     print(f"Final Cd: {float(cd):.4f}")

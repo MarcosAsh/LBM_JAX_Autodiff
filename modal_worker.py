@@ -23,10 +23,10 @@ image = (
         "optax",
         "pytest",
     )
-    .add_local_dir("jax_lbm", "/root/jax_lbm")
-    .add_local_dir("tests", "/root/tests")
-    .add_local_dir("examples", "/root/examples")
-    .add_local_file("pyproject.toml", "/root/pyproject.toml")
+    .add_local_dir("jax_lbm", "/root/jax_lbm", copy=True)
+    .add_local_dir("tests", "/root/tests", copy=True)
+    .add_local_dir("examples", "/root/examples", copy=True)
+    .add_local_file("pyproject.toml", "/root/pyproject.toml", copy=True)
     .run_commands("cd /root && pip install -e .")
 )
 

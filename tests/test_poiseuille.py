@@ -59,25 +59,18 @@ def _run_poiseuille(nx, ny, nz, u_inlet, tau, n_steps):
 
     import numpy as np
     from jax_lbm.core.lattice import D3Q19_OPPOSITE
-    opp_list = [int(x) for x in np.asarray(D3Q19_OPPOSITE)]
+    opp_arr = jnp.array([int(x) for x in np.asarray(D3Q19_OPPOSITE)])
+    is_solid = (solid >= 1)[jnp.newaxis, :, :, :]
 
-    # Run simulation loop. Use a Python loop here for simplicity in the
-    # test (not JIT-compiling the full loop, just each step).
-    for _ in range(n_steps):
-        # Collision.
-        f = bgk(f, tau)
+    def step_fn(f_in, _):
+        f_c = bgk(f_in, tau)
+        f_c = jnp.where(is_solid, f_c[opp_arr], f_c)
+        f_c = stream(f_c, q, periodic_yz=True)
+        f_c = zou_he_inlet(f_c, vel)
+        f_c = zou_he_outlet(f_c, rho_out=1.0)
+        return f_c, None
 
-        # Solid bounce-back.
-        f_bounced = f[jnp.array(opp_list)]
-        is_solid = (solid >= 1)[jnp.newaxis, :, :, :]
-        f = jnp.where(is_solid, f_bounced, f)
-
-        # Stream.
-        f = stream(f, q, periodic_yz=True)
-
-        # Boundary conditions.
-        f = zou_he_inlet(f, vel)
-        f = zou_he_outlet(f, rho_out=1.0)
+    f, _ = jax.lax.scan(step_fn, f, None, length=n_steps)
 
     # Extract velocity profile at channel midpoint.
     rho_final = compute_density(f)

@@ -43,23 +43,28 @@ def main():
     f = equilibrium(rho, u)
     vel = jnp.array([u_inlet, 0.0, 0.0])
 
-    opp_list = [int(x) for x in np.asarray(D3Q19_OPPOSITE)]
-    opp_arr = jnp.array(opp_list)
+    import jax
 
+    opp_arr = jnp.array([int(x) for x in np.asarray(D3Q19_OPPOSITE)])
+    is_solid = (solid >= 1)[jnp.newaxis, :, :, :]
+
+    def step_fn(f_in, _):
+        f_c = bgk(f_in, tau)
+        f_c = jnp.where(is_solid, f_c[opp_arr], f_c)
+        f_c = stream(f_c, q, periodic_yz=True)
+        f_c = zou_he_inlet(f_c, vel)
+        f_c = zou_he_outlet(f_c, rho_out=1.0)
+        return f_c, None
+
+    # Run in chunks of 500 to print progress.
     print(f"Running {n_steps} steps...")
-    for i in range(n_steps):
-        f = bgk(f, tau)
-        f_bounced = f[opp_arr]
-        is_solid = (solid >= 1)[jnp.newaxis, :, :, :]
-        f = jnp.where(is_solid, f_bounced, f)
-        f = stream(f, q, periodic_yz=True)
-        f = zou_he_inlet(f, vel)
-        f = zou_he_outlet(f, rho_out=1.0)
-
-        if (i + 1) % 500 == 0:
-            rho_now = compute_density(f)
-            u_now = compute_velocity(f, rho_now)
-            print(f"  Step {i+1}: max|u_x|={float(jnp.max(jnp.abs(u_now[0]))):.5f}")
+    chunk = 500
+    for start in range(0, n_steps, chunk):
+        length = min(chunk, n_steps - start)
+        f, _ = jax.lax.scan(step_fn, f, None, length=length)
+        rho_now = compute_density(f)
+        u_now = compute_velocity(f, rho_now)
+        print(f"  Step {start + length}: max|u_x|={float(jnp.max(jnp.abs(u_now[0]))):.5f}")
 
     # Extract profile at midpoint.
     rho_final = compute_density(f)

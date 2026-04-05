@@ -24,6 +24,7 @@ References:
 """
 
 import jax
+import jax
 import jax.numpy as jnp
 import numpy as np
 import pytest
@@ -71,33 +72,21 @@ def _run_sphere_drag(nx, ny, nz, n_steps, u_inlet=0.05, re=100.0):
 
     vel = jnp.array([u_inlet, 0.0, 0.0])
 
-    opp_list = [int(x) for x in np.asarray(D3Q19_OPPOSITE)]
-    opp_arr = jnp.array(opp_list)
-
+    opp_arr = jnp.array([int(x) for x in np.asarray(D3Q19_OPPOSITE)])
+    is_solid = (solid >= 1)[jnp.newaxis, :, :, :]
     tau_val = jnp.float32(tau)
 
-    # Run simulation.
-    for step_i in range(n_steps):
-        # Save pre-collision for force computation on the last step.
-        f_pre = f
+    def step_fn(f_in, _):
+        f_c = bgk(f_in, tau_val)
+        f_c = jnp.where(is_solid, f_c[opp_arr], f_c)
+        f_post = f_c
+        f_s = stream(f_c, q, periodic_yz=True)
+        f_s = zou_he_inlet(f_s, vel)
+        f_s = zou_he_outlet(f_s, rho_out=1.0)
+        return f_s, f_post
 
-        # Collision.
-        f = bgk(f, tau_val)
-
-        # Solid bounce-back.
-        f_bounced = f[opp_arr]
-        is_solid = (solid >= 1)[jnp.newaxis, :, :, :]
-        f = jnp.where(is_solid, f_bounced, f)
-
-        # Save post-collision (pre-streaming) for force computation.
-        f_post = f
-
-        # Stream.
-        f = stream(f, q, periodic_yz=True)
-
-        # Boundaries.
-        f = zou_he_inlet(f, vel)
-        f = zou_he_outlet(f, rho_out=1.0)
+    f, f_posts = jax.lax.scan(step_fn, f, None, length=n_steps)
+    f_post = jax.tree.map(lambda x: x[-1], f_posts)
 
     # Compute force and Cd.
     force = momentum_exchange(f_post, f, q)
