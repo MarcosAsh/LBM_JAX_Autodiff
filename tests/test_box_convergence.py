@@ -15,7 +15,7 @@ import numpy as np
 import pytest
 
 from jax_lbm.core.lattice import D3Q19_OPPOSITE
-from jax_lbm.core.equilibrium import equilibrium, compute_density
+from jax_lbm.core.equilibrium import equilibrium, compute_density, compute_velocity
 from jax_lbm.core.collision import bgk
 from jax_lbm.core.streaming import stream
 from jax_lbm.core.boundary import zou_he_inlet, zou_he_outlet
