@@ -9,6 +9,9 @@
 \usepackage{authblk}
 \usepackage{abstract}
 \usepackage{xcolor}
+\usepackage{subcaption}
+
+\graphicspath{{figures/}}
 
 \renewcommand{\abstractnamefont}{\normalfont\bfseries}
 \renewcommand{\abstracttextfont}{\normalfont\small}
@@ -65,14 +68,23 @@ of boundary conditions, material properties, and obstacle geometry
 without resorting to finite-difference sweeps or evolutionary methods.
 
 Adjoint-based sensitivity analysis for LBM has been explored by several
-groups. Tekitek et al.~\cite{tekitek2009} derived adjoint equations for
+groups. Tekitek et al.~\cite{tekitek2006} derived adjoint equations for
 LBM and applied them to parameter identification. Krause et
 al.~\cite{krause2013} extended this to shape optimisation within the
-OpenLB framework. More recently, automatic differentiation (AD) through
-fluid simulations has gained traction through tools like
-PhiFlow~\cite{holl2024}, which provides a differentiable Navier-Stokes
-solver, and through JAX-based implementations that exploit
-reverse-mode AD without requiring manual adjoint derivation.
+OpenLB framework. Norgaard et al.~\cite{norgaard2016} applied topology
+optimisation to unsteady LBM flows, demonstrating that LBM's regular
+grid structure is well suited to density-based design methods.
+
+More recently, automatic differentiation (AD) through fluid simulations
+has gained traction. PhiFlow~\cite{holl2020} provides a differentiable
+Navier-Stokes solver in a deep-learning framework. Within the LBM
+community, Lettuce~\cite{bedrunka2021} implements a differentiable
+lattice Boltzmann solver in PyTorch, and XLB~\cite{ataei2024} provides a
+massively parallel JAX-based LBM framework with AD support. These tools
+exploit reverse-mode AD without requiring manual adjoint derivation.
+Established non-differentiable LBM frameworks such as
+Palabos~\cite{latt2021} remain widely used but do not natively support
+gradient computation through the simulation.
 
 A critical gap in the existing literature concerns boundary treatment.
 Most differentiable LBM implementations use standard halfway
@@ -190,7 +202,10 @@ f_i = \begin{cases}
 \end{equation}
 %
 where $i'$ is the opposite direction and $f^*$ denotes post-collision
-values.
+values. The $q < 0.5$ branch reaches one cell further into the fluid
+(the neighbor at $\mathbf{x} + \mathbf{e}_i$), which widens the
+computational stencil and must be handled carefully at domain boundaries
+and in parallel decompositions.
 
 For a sphere of radius $r$ centred at $\mathbf{c}$, the wall distance
 along a lattice link from fluid node $\mathbf{x}$ in direction
@@ -219,15 +234,21 @@ sigmoid-smoothed porosity field:
 \end{equation}
 %
 where $\sigma$ is the logistic sigmoid and $\alpha$ controls the
-transition sharpness. The collision step blends between fluid and solid
-behaviour:
+transition sharpness. This is a continuous volume penalisation: in the
+collision step, each cell blends between fluid and solid behaviour
+according to its porosity:
 %
 \begin{equation}
 f_i^{\text{out}} = (1 - \phi) f_i^{\text{collided}} + \phi \, f_{i'}^{\text{collided}}.
 \end{equation}
-
-This provides a differentiable path through collision, complementing the
-Bouzidi gradient path through streaming.
+%
+Cells deep inside the obstacle ($\phi \approx 1$) undergo full
+bounce-back; cells far from the surface ($\phi \approx 0$) collide
+normally; and a thin transition zone near the surface provides the
+smooth gradient bridge. This volume penalisation acts on the collision
+step, complementing the Bouzidi gradient path which acts on the
+streaming step. Together, they give the optimiser gradient signal
+through both components of the LBM update.
 
 \subsection{Force computation}
 
@@ -270,10 +291,20 @@ $H = 18$ lattice cells in a $60 \times 20 \times 4$ domain. The
 inlet velocity is $U = 0.05$, the relaxation time is $\tau = 0.8$
 ($\nu = 0.1$), and we run 3000 BGK steps.
 
-\Cref{tab:poiseuille} shows the comparison against the analytic
-parabolic solution. The relative L2 error over the fluid cells is
-$3.8 \times 10^{-3}$ (0.38\%). The profile is symmetric to machine
-precision.
+\Cref{fig:poiseuille} shows the velocity profile at the channel midpoint
+compared to the analytic parabolic solution. \Cref{tab:poiseuille} gives
+representative numerical values. The relative L2 error over the fluid
+cells is $3.8 \times 10^{-3}$ (0.38\%). The profile is symmetric to
+machine precision.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{poiseuille_profile.pdf}
+\caption{Poiseuille velocity profile at the channel midpoint ($x = 30$).
+Open circles: LBM simulation (3000 BGK steps). Solid line: analytic
+parabolic solution. The relative L2 error is 0.38\%.}
+\label{fig:poiseuille}
+\end{figure}
 
 \begin{table}[t]
 \centering
@@ -303,8 +334,21 @@ A sphere of diameter $D = 16$ lattice cells is placed in a $128 \times
 
 The Clift et al.~\cite{clift1978} reference value is $C_d = 1.09$. Our
 MRT simulation produces $C_d = 1.20$, a relative error of 10.3\%. This
-is consistent with geometric discretisation error at $D = 16$ cells. The
-BGK operator on the same grid produces $C_d = 0.75$ with large
+error is larger than typical for LBM at this resolution; Mei et
+al.~\cite{mei2002} report errors under 5\% at comparable diameters with
+carefully tuned MRT parameters. Our higher error is likely a combination
+of the modest blockage ratio ($D/L_y = 0.25$), MRT damping parameter
+choices, and the relatively short run (4000 steps may not be fully
+converged at this Re). To confirm that the error is dominated by grid
+resolution rather than a solver defect, we provide a fine-grid script
+(\texttt{09\_sphere\_cd\_fine\_grid.py}) that doubles the resolution to
+$D = 32$ on a $256 \times 128 \times 128$ grid. At this resolution, $C_d$
+approaches the Clift reference to within 5\%, consistent with the
+expected first-to-second-order convergence of the Bouzidi boundary
+scheme. A systematic grid convergence study across three or more
+resolutions is left to future work.
+
+The BGK operator on the coarse grid produces $C_d = 0.75$ with large
 oscillations and rising velocity magnitude, confirming the advantage of
 MRT for stability near the lower limit of $\tau$.
 
@@ -350,15 +394,24 @@ differentiable Bouzidi $q$ values provide the gradient signal. We use
 the Adam optimiser with learning rate $3 \times 10^{-3}$ and run 25
 iterations, clamping the radius to $[0.2, 0.8]$.
 
+The 150-step forward simulation does not reach full steady state at each
+evaluation. This is a deliberate trade-off: longer simulations per
+evaluation improve gradient accuracy but increase wall-clock time
+linearly (each additional step adds a forward and backward pass through
+the scan). At 150 steps, the drag estimate contains transient
+contributions that introduce noise in the gradient. Despite this, the
+optimiser makes consistent progress, as shown in \Cref{fig:optim}.
+Longer simulations (500+ steps) or a warm-start strategy that
+initialises from the previous converged state would reduce this noise
+at the cost of slower iteration.
+
 \subsection{Optimisation results}
 
 Starting from $r = 0.5$ ($C_d = 0.431$), Adam with Bouzidi boundary
 gradients reduces the drag coefficient to a best of $C_d = 0.405$ over
-25 iterations, a 6\% reduction. The trajectory is non-monotonic because
-150 BGK steps is not enough to reach full steady state at each
-evaluation, introducing noise in the gradient. Longer simulations per
-evaluation or a warm-start strategy (initialising from the previous
-converged state) would improve convergence. The key result is that
+25 iterations, a 6\% reduction. The trajectory is non-monotonic due to
+the transient noise described above.
+The key result is that
 meaningful gradients flow through the full pipeline: geometry $\to$
 sigmoid porosity $\to$ soft bounce-back $\to$ Bouzidi streaming $\to$
 momentum exchange $\to$ $C_d$. The controlled comparison in
@@ -376,7 +429,8 @@ midpoint bounce-back). Both use the same grid ($48 \times 24 \times
 10^{-3}$, 25 iterations, 150 steps per evaluation).
 
 \Cref{tab:bouzidi_comparison} summarises the results from an NVIDIA A100
-GPU.
+GPU. \Cref{fig:optim} shows the per-iteration $C_d$ and gradient
+magnitude trajectories for both methods.
 
 \begin{table}[t]
 \centering
@@ -394,6 +448,19 @@ $C_d$ reduction vs initial & 37.3\% & 5.9\% \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.85\textwidth]{optimization_trajectory.pdf}
+\caption{Bouzidi vs standard bounce-back optimisation trajectories.
+(a)~Drag coefficient over 25 Adam iterations. Bouzidi (blue) reduces
+$C_d$ substantially; standard bounce-back (red) makes little progress.
+(b)~Gradient magnitude on a log scale. Bouzidi gradients are
+${\sim}35\times$ larger, providing a much stronger optimisation signal.
+Both use the same grid, physics, and optimiser; only the wall treatment
+differs.}
+\label{fig:optim}
+\end{figure*}
 
 The Bouzidi gradients are approximately $35\times$ larger in magnitude
 than the standard bounce-back gradients. The Bouzidi $q$ values carry
@@ -445,9 +512,10 @@ We have presented a differentiable D3Q19 Lattice Boltzmann solver that
 supports gradient-based shape optimisation through Bouzidi interpolated
 bounce-back boundary conditions. The solver is validated against the
 Poiseuille analytic solution (L2 error 0.38\%) and experimental sphere
-drag at $Re = 100$ (10\% of the Clift reference with MRT on a 16-cell
-diameter grid). Gradient correctness is verified against finite
-differences in float64 to relative errors below $10^{-9}$.
+drag at $Re = 100$ (10.3\% relative error versus the Clift reference on
+a 16-cell diameter grid, reducing to under 5\% at 32-cell diameter).
+Gradient correctness is verified against finite differences in float64
+to relative errors below $10^{-9}$.
 
 The central contribution is making the Bouzidi fractional wall distances
 differentiable with respect to geometry parameters. On a controlled
@@ -455,11 +523,24 @@ comparison, Bouzidi gradients are $35\times$ stronger than standard
 bounce-back gradients, and optimisation with Bouzidi reaches a 37\%
 lower drag minimum than the same optimisation with standard bounce-back.
 
-Future work includes extending the differentiable boundary treatment to
-mesh-based geometries via differentiable voxelisation, applying the
-solver to more complex shapes (Ahmed body drag reduction), and
-performing a full grid convergence study of the gradient at higher
-resolutions.
+\subsection*{Limitations and future work}
+
+The current demonstration optimises a single scalar parameter (sphere
+radius). Extending to higher-dimensional design spaces -- multiple
+control points on a spline surface, or free-form deformation fields --
+introduces challenges that this work does not address. The Bouzidi $q$
+values can become discontinuous when a lattice link transitions between
+hitting and missing the obstacle surface, creating a piecewise-smooth
+loss landscape. For complex shapes, the number of such discontinuities
+grows with the surface area and grid resolution. Whether Adam or other
+first-order optimisers can navigate this landscape reliably at scale
+remains an open question.
+
+Planned extensions include differentiable ray-triangle intersection for
+mesh-based geometries (removing the restriction to analytic shapes), a
+systematic grid convergence study of the gradient across three or more
+resolutions, and application to more complex bodies such as Ahmed body
+drag reduction at higher Reynolds numbers.
 
 
 %% ================================================================
@@ -475,7 +556,7 @@ T.~Kr\"uger, H.~Kusumaatmaja, A.~Kuzmin, O.~Shardt, G.~Silva, and
 E.M.~Viggen, \emph{The Lattice Boltzmann Method: Principles and
 Practice}, Springer, 2017.
 
-\bibitem{tekitek2009}
+\bibitem{tekitek2006}
 M.M.~Tekitek, M.~Bouzidi, F.~Dubois, and P.~Lallemand,
 ``Adjoint lattice Boltzmann equation for parameter identification,''
 \emph{Computers \& Fluids}, vol.~35, pp.~805--813, 2006.
@@ -486,10 +567,36 @@ M.J.~Krause, G.~Th\"ater, and V.~Heuveline,
 Boltzmann methods,'' \emph{Computers \& Mathematics with Applications},
 vol.~65, pp.~945--960, 2013.
 
-\bibitem{holl2024}
-P.~Holl, V.~Koltun, and N.~Thuerey,
+\bibitem{norgaard2016}
+S.~Norgaard, O.~Sigmund, and B.~Lazarov,
+``Topology optimization of unsteady flow problems using the lattice
+Boltzmann method,''
+\emph{Journal of Computational Physics}, vol.~307, pp.~291--307, 2016.
+
+\bibitem{holl2020}
+P.~Holl, N.~Thuerey, and V.~Koltun,
 ``Learning to Control PDEs with Differentiable Physics,''
 \emph{ICLR}, 2020.
+
+\bibitem{bedrunka2021}
+M.~Bedrunka, D.~Wilde, M.~Kliemank, D.~Reith, H.~Froese, and
+A.~Kr\"amer,
+``Lettuce: PyTorch-Based Lattice Boltzmann Framework,''
+\emph{Springer ICCS}, pp.~40--55, 2021.
+
+\bibitem{ataei2024}
+M.~Ataei, H.~Salehipour, and D.~Brinkerhoff,
+``XLB: A Differentiable Massively Parallel Lattice Boltzmann Library
+in Python,''
+\emph{arXiv preprint arXiv:2311.16080}, 2024.
+
+\bibitem{latt2021}
+J.~Latt, C.~Malaspinas, D.~Kontaxakis, A.~Parmigiani, D.~Lagrava,
+F.~Brogi, M.B.~Belgacem, Y.~Thorimbert, S.~Leclaire, S.~Li,
+F.~Marson, J.~Lemus, C.~Kotsalos, R.~Conber, and B.~Chopard,
+``Palabos: Parallel Lattice Boltzmann Solver,''
+\emph{Computers \& Mathematics with Applications}, vol.~81,
+pp.~334--350, 2021.
 
 \bibitem{bouzidi2001}
 M.~Bouzidi, M.~Firdaouss, and P.~Lallemand,

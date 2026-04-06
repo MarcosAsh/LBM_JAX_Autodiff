@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2026/dev/Arch Linux) (preloaded format=pdflatex 2026.2.19)  5 APR 2026 17:52
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2026/dev/Arch Linux) (preloaded format=pdflatex 2026.2.19)  5 APR 2026 19:15
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -353,31 +353,58 @@ Package xcolor Info: Model `HSB' substituted by `hsb' on input line 1370.
 Package xcolor Info: Model `Gray' substituted by `gray' on input line 1371.
 Package xcolor Info: Model `wave' substituted by `hsb' on input line 1372.
 )
+(/usr/share/texmf-dist/tex/latex/caption/subcaption.sty
+Package: subcaption 2023/07/28 v1.6b Sub-captions (AR)
+
+(/usr/share/texmf-dist/tex/latex/caption/caption.sty
+Package: caption 2023/08/05 v3.6o Customizing captions (AR)
+
+(/usr/share/texmf-dist/tex/latex/caption/caption3.sty
+Package: caption3 2023/07/31 v2.4d caption3 kernel (AR)
+\caption@tempdima=\dimen178
+\captionmargin=\dimen179
+\caption@leftmargin=\dimen180
+\caption@rightmargin=\dimen181
+\caption@width=\dimen182
+\caption@indent=\dimen183
+\caption@parindent=\dimen184
+\caption@hangindent=\dimen185
+Package caption Info: Standard document class detected.
+)
+\c@caption@flags=\count304
+\c@continuedfloat=\count305
+Package caption Info: hyperref package is loaded.
+)
+Package caption Info: New subtype `subfigure' on input line 238.
+\c@subfigure=\count306
+Package caption Info: New subtype `subtable' on input line 238.
+\c@subtable=\count307
+)
 (/usr/share/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
 File: l3backend-pdftex.def 2024-05-08 L3 backend support: PDF output (pdfTeX)
-\l__color_backend_stack_int=\count304
+\l__color_backend_stack_int=\count308
 \l__pdf_internal_box=\box54
 ) (./paper.aux)
 \openout1 = `paper.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -415,16 +442,16 @@ LaTeX Font Info:    ... okay on input line 16.
 
 (/usr/share/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count305
-\scratchdimen=\dimen178
+\scratchcounter=\count309
+\scratchdimen=\dimen186
 \scratchbox=\box55
-\nofMPsegments=\count306
-\nofMParguments=\count307
+\nofMPsegments=\count310
+\nofMParguments=\count311
 \everyMPshowfont=\toks24
-\MPscratchCnt=\count308
-\MPscratchDim=\dimen179
-\MPnumerator=\count309
-\makeMPintoPDFobject=\count310
+\MPscratchCnt=\count312
+\MPscratchDim=\dimen187
+\MPnumerator=\count313
+\makeMPintoPDFobject=\count314
 \everyMPtoPDFconversion=\toks25
 ) (/usr/share/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
 Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
@@ -435,28 +462,35 @@ Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 ))
-Package hyperref Info: Link coloring OFF on input line 16.
+Package hyperref Info: Link coloring OFF on input line 19.
  (./paper.out)
 (./paper.out)
 \@outlinefile=\write3
 \openout3 = `paper.out'.
 
-LaTeX Font Info:    Trying to load font information for U+msa on input line 36.
+Package caption Info: Begin \AtBeginDocument code.
+Package caption Info: End \AtBeginDocument code.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 39.
 
  (/usr/share/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 36.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 39.
 
 
 (/usr/share/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
-Underfull \hbox (badness 1371) in paragraph at lines 46--49
+Underfull \hbox (badness 1371) in paragraph at lines 49--52
 \OT1/cmr/bx/n/9 Keywords: \OT1/cmr/m/n/9 lat-tice Boltz-mann method, au-to-
  []
 
 
+
+
+Underfull \hbox (badness 1102) in paragraph at lines 78--88
+\OT1/cmr/m/n/10 learning frame-work. Within the LBM com-mu-nity,
+ []
 
 
 
@@ -466,70 +500,110 @@ Underfull \hbox (badness 1371) in paragraph at lines 46--49
 ]
 
 
-Underfull \hbox (badness 1102) in paragraph at lines 229--231
-[]\OT1/cmr/m/n/10 This pro-vides a dif-fer-en-tiable path through col-li-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 234--240
+Underfull \hbox (badness 10000) in paragraph at lines 255--261
 \OT1/cmr/m/n/10 We use the Mei-Luo-Shyy mo-men-tum ex-change
  []
 
 
 
 [2]
+<figures/poiseuille_profile.pdf, id=160, 317.41536pt x 243.17819pt>
+File: figures/poiseuille_profile.pdf Graphic file (type pdf)
+<use figures/poiseuille_profile.pdf>
+Package pdftex.def Info: figures/poiseuille_profile.pdf  used on input line 302
+.
+(pdftex.def)             Requested size: 245.24199pt x 187.886pt.
+
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 298.
+(hyperref)                removing `math shift' on input line 329.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 298.
+(hyperref)                removing `math shift' on input line 329.
 
 
-Overfull \hbox (57.74252pt too wide) in paragraph at lines 321--330
+
+
+Overfull \hbox (57.74252pt too wide) in paragraph at lines 365--374
  [][] 
  []
 
 
+Underfull \vbox (badness 1783) has occurred while \output is active []
 
 
-Overfull \hbox (18.44705pt too wide) in paragraph at lines 386--396
+
+[3 <./figures/poiseuille_profile.pdf>]
+Overfull \hbox (18.44705pt too wide) in paragraph at lines 440--450
  [][] 
  []
 
+<figures/optimization_trajectory.pdf, id=222, 501.83377pt x 208.40611pt>
+File: figures/optimization_trajectory.pdf Graphic file (type pdf)
+<use figures/optimization_trajectory.pdf>
+Package pdftex.def Info: figures/optimization_trajectory.pdf  used on input lin
+e 454.
+(pdftex.def)             Requested size: 425.41444pt x 176.67537pt.
 
 
-[3]
 
 
-Underfull \hbox (badness 1430) in paragraph at lines 458--463
-[]\OT1/cmr/m/n/10 Future work in-cludes ex-tend-ing the dif-fer-en-tiable
+[4]
+Underfull \hbox (badness 2351) in paragraph at lines 528--538
+\OT1/cmr/m/n/10 pa-ram-e-ter (sphere ra-dius). Ex-tend-ing to higher-
  []
 
 
-Underfull \hbox (badness 6608) in paragraph at lines 474--477
+Underfull \hbox (badness 6608) in paragraph at lines 555--558
 []\OT1/cmr/m/n/10 T. Kr^^?uger, H. Kusumaat-maja, A. Kuzmin,
  []
 
 
-Underfull \hbox (badness 1642) in paragraph at lines 479--482
+
+
+Underfull \hbox (badness 1642) in paragraph at lines 560--563
 \OT1/cmr/m/n/10 pa-ram-e-ter iden-ti-fi-ca-tion,'' \OT1/cmr/m/it/10 Com-put-ers
  & Flu-ids\OT1/cmr/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 3758) in paragraph at lines 484--488
+Underfull \hbox (badness 3758) in paragraph at lines 565--569
 []\OT1/cmr/m/n/10 M.J. Krause, G. Th^^?ater, and V. Heuve-line,
  []
 
 
+Underfull \hbox (badness 1867) in paragraph at lines 588--592
+[]\OT1/cmr/m/n/10 M. Ataei, H. Sale-hipour, and D. Brinker-hoff,
+ []
 
-[4]
+
+Underfull \hbox (badness 1199) in paragraph at lines 588--592
+\OT1/cmr/m/n/10 ``XLB: A Dif-fer-en-tiable Mas-sively Par-al-lel Lat-
+ []
+
+
+Underfull \hbox (badness 2088) in paragraph at lines 594--600
+\OT1/cmr/m/n/10 giani, D. La-grava, F. Brogi, M.B. Bel-gacem,
+ []
+
+
+Underfull \hbox (badness 3343) in paragraph at lines 594--600
+\OT1/cmr/m/n/10 Y. Thorim-bert, S. Leclaire, S. Li, F. Mar-
+ []
+
+
+Underfull \hbox (badness 1694) in paragraph at lines 594--600
+\OT1/cmr/m/n/10 son, J. Lemus, C. Kot-sa-los, R. Con-ber, and
+ []
 
 
 
-[5
+[5 <./figures/optimization_trajectory.pdf>]
+
+
+
+[6
 
 ] (./paper.aux)
  ***********
@@ -540,13 +614,13 @@ Package rerunfilecheck Info: File `paper.out' has not changed.
 (rerunfilecheck)             Checksum: F58703C46283BB5D1450FBB3605764FA;3359.
  ) 
 Here is how much of TeX's memory you used:
- 12639 strings out of 475171
- 202419 string characters out of 5767095
- 631974 words of memory out of 5000000
- 35437 multiletter control sequences out of 15000+600000
+ 14090 strings out of 475171
+ 230817 string characters out of 5767095
+ 642609 words of memory out of 5000000
+ 36871 multiletter control sequences out of 15000+600000
  570781 words of font info for 82 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 75i,11n,79p,283b,561s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,11n,79p,566b,566s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/
 texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texmf-dist/fon
 ts/type1/public/amsfonts/cm/cmbx9.pfb></usr/share/texmf-dist/fonts/type1/public
@@ -566,10 +640,10 @@ exmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texmf-dist/fonts
 msfonts/cm/cmti10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmt
 t10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb></usr/s
 hare/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on paper.pdf (5 pages, 300415 bytes).
+Output written on paper.pdf (6 pages, 338451 bytes).
 PDF statistics:
- 296 PDF objects out of 1000 (max. 8388607)
- 240 compressed objects within 3 object streams
- 53 named destinations out of 1000 (max. 500000)
- 169 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 414 PDF objects out of 1000 (max. 8388607)
+ 278 compressed objects within 3 object streams
+ 61 named destinations out of 1000 (max. 500000)
+ 179 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -3,16 +3,18 @@
 \providecommand\HyField@AuxAddToFields[1]{}
 \providecommand\HyField@AuxAddToCoFields[2]{}
 \citation{kruger2017}
-\citation{tekitek2009}
+\citation{tekitek2006}
 \citation{krause2013}
-\citation{holl2024}
+\citation{norgaard2016}
+\citation{holl2020}
+\citation{bedrunka2021}
+\citation{ataei2024}
+\citation{latt2021}
 \citation{bouzidi2001}
-\citation{jax2018}
 \@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
 \newlabel{sec:intro}{{1}{1}{Introduction}{section.1}{}}
 \newlabel{sec:intro@cref}{{[section][1][]1}{[1][1][]1}{}{}{}}
-\newlabel{eq:chain}{{1}{1}{Introduction}{equation.1}{}}
-\newlabel{eq:chain@cref}{{[equation][1][]1}{[1][1][]1}{}{}{}}
+\citation{jax2018}
 \citation{bgk1954}
 \citation{dhumieres2002}
 \citation{dhumieres2002}
@@ -20,6 +22,8 @@
 \citation{list2022}
 \citation{mei2002}
 \citation{zou1997}
+\newlabel{eq:chain}{{1}{2}{Introduction}{equation.1}{}}
+\newlabel{eq:chain@cref}{{[equation][1][]1}{[1][1][]2}{}{}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {2}Methodology}{2}{section.2}\protected@file@percent }
 \newlabel{sec:method}{{2}{2}{Methodology}{section.2}{}}
 \newlabel{sec:method@cref}{{[section][2][]2}{[1][2][]2}{}{}{}}
@@ -40,49 +44,61 @@
 \newlabel{eq:porosity}{{7}{2}{Differentiable solid representation}{equation.7}{}}
 \newlabel{eq:porosity@cref}{{[equation][7][]7}{[1][2][]2}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.5}Force computation}{2}{subsection.2.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.6}Boundary conditions}{2}{subsection.2.6}\protected@file@percent }
 \citation{clift1978}
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Poiseuille flow: LBM vs analytic velocity. $H = 18$, $\tau = 0.8$, 3000 steps.}}{3}{table.1}\protected@file@percent }
-\newlabel{tab:poiseuille}{{1}{3}{Poiseuille flow: LBM vs analytic velocity. $H = 18$, $\tau = 0.8$, 3000 steps}{table.1}{}}
-\newlabel{tab:poiseuille@cref}{{[table][1][]1}{[1][3][]3}{}{}{}}
+\citation{mei2002}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Poiseuille velocity profile at the channel midpoint ($x = 30$). Open circles: LBM simulation (3000 BGK steps). Solid line: analytic parabolic solution. The relative L2 error is 0.38\%.}}{3}{figure.caption.1}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:poiseuille}{{1}{3}{Poiseuille velocity profile at the channel midpoint ($x = 30$). Open circles: LBM simulation (3000 BGK steps). Solid line: analytic parabolic solution. The relative L2 error is 0.38\%}{figure.caption.1}{}}
+\newlabel{fig:poiseuille@cref}{{[figure][1][]1}{[1][3][]3}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.6}Boundary conditions}{3}{subsection.2.6}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.7}Gradient checkpointing}{3}{subsection.2.7}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {3}Validation}{3}{section.3}\protected@file@percent }
 \newlabel{sec:validation}{{3}{3}{Validation}{section.3}{}}
 \newlabel{sec:validation@cref}{{[section][3][]3}{[1][3][]3}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Poiseuille flow}{3}{subsection.3.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Sphere drag at $Re = 100$}{3}{subsection.3.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Gradient verification}{3}{subsection.3.3}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Gradient verification in float64.}}{3}{table.2}\protected@file@percent }
-\newlabel{tab:gradients}{{2}{3}{Gradient verification in float64}{table.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Poiseuille flow: LBM vs analytic velocity. $H = 18$, $\tau = 0.8$, 3000 steps.}}{3}{table.caption.2}\protected@file@percent }
+\newlabel{tab:poiseuille}{{1}{3}{Poiseuille flow: LBM vs analytic velocity. $H = 18$, $\tau = 0.8$, 3000 steps}{table.caption.2}{}}
+\newlabel{tab:poiseuille@cref}{{[table][1][]1}{[1][3][]3}{}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Gradient verification in float64.}}{3}{table.caption.3}\protected@file@percent }
+\newlabel{tab:gradients}{{2}{3}{Gradient verification in float64}{table.caption.3}{}}
 \newlabel{tab:gradients@cref}{{[table][2][]2}{[1][3][]3}{}{}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Shape optimisation}{3}{section.4}\protected@file@percent }
-\newlabel{sec:optim}{{4}{3}{Shape optimisation}{section.4}{}}
-\newlabel{sec:optim@cref}{{[section][4][]4}{[1][3][]3}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Problem setup}{3}{subsection.4.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Optimisation results}{3}{subsection.4.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Bouzidi vs standard bounce-back}{3}{subsection.4.3}\protected@file@percent }
-\newlabel{sec:comparison}{{4.3}{3}{Bouzidi vs standard bounce-back}{subsection.4.3}{}}
-\newlabel{sec:comparison@cref}{{[subsection][3][4]4.3}{[1][3][]3}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Gradient verification}{3}{subsection.3.3}\protected@file@percent }
 \citation{jax2018}
-\bibcite{kruger2017}{1}
-\bibcite{tekitek2009}{2}
-\bibcite{krause2013}{3}
-\bibcite{holl2024}{4}
-\bibcite{bouzidi2001}{5}
-\bibcite{bgk1954}{6}
-\bibcite{dhumieres2002}{7}
-\bibcite{clift1978}{8}
-\bibcite{mei2002}{9}
-\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Bouzidi vs standard bounce-back: same grid, physics, and optimiser. Only the wall treatment differs.}}{4}{table.3}\protected@file@percent }
-\newlabel{tab:bouzidi_comparison}{{3}{4}{Bouzidi vs standard bounce-back: same grid, physics, and optimiser. Only the wall treatment differs}{table.3}{}}
-\newlabel{tab:bouzidi_comparison@cref}{{[table][3][]3}{[1][3][]4}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Shape optimisation}{4}{section.4}\protected@file@percent }
+\newlabel{sec:optim}{{4}{4}{Shape optimisation}{section.4}{}}
+\newlabel{sec:optim@cref}{{[section][4][]4}{[1][3][]4}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Problem setup}{4}{subsection.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Optimisation results}{4}{subsection.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Bouzidi vs standard bounce-back}{4}{subsection.4.3}\protected@file@percent }
+\newlabel{sec:comparison}{{4.3}{4}{Bouzidi vs standard bounce-back}{subsection.4.3}{}}
+\newlabel{sec:comparison@cref}{{[subsection][3][4]4.3}{[1][4][]4}{}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Bouzidi vs standard bounce-back: same grid, physics, and optimiser. Only the wall treatment differs.}}{4}{table.caption.4}\protected@file@percent }
+\newlabel{tab:bouzidi_comparison}{{3}{4}{Bouzidi vs standard bounce-back: same grid, physics, and optimiser. Only the wall treatment differs}{table.caption.4}{}}
+\newlabel{tab:bouzidi_comparison@cref}{{[table][3][]3}{[1][4][]4}{}{}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {5}Implementation}{4}{section.5}\protected@file@percent }
 \newlabel{sec:implementation}{{5}{4}{Implementation}{section.5}{}}
 \newlabel{sec:implementation@cref}{{[section][5][]5}{[1][4][]4}{}{}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {6}Conclusion}{4}{section.6}\protected@file@percent }
 \newlabel{sec:conclusion}{{6}{4}{Conclusion}{section.6}{}}
 \newlabel{sec:conclusion@cref}{{[section][6][]6}{[1][4][]4}{}{}{}}
-\bibcite{zou1997}{10}
-\bibcite{list2022}{11}
-\bibcite{jax2018}{12}
-\gdef \@abspage@last{5}
+\bibcite{kruger2017}{1}
+\bibcite{tekitek2006}{2}
+\bibcite{krause2013}{3}
+\bibcite{norgaard2016}{4}
+\bibcite{holl2020}{5}
+\bibcite{bedrunka2021}{6}
+\bibcite{ataei2024}{7}
+\bibcite{latt2021}{8}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Bouzidi vs standard bounce-back optimisation trajectories. (a)~Drag coefficient over 25 Adam iterations. Bouzidi (blue) reduces $C_d$ substantially; standard bounce-back (red) makes little progress. (b)~Gradient magnitude on a log scale. Bouzidi gradients are ${\sim }35\times $ larger, providing a much stronger optimisation signal. Both use the same grid, physics, and optimiser; only the wall treatment differs.}}{5}{figure.caption.5}\protected@file@percent }
+\newlabel{fig:optim}{{2}{5}{Bouzidi vs standard bounce-back optimisation trajectories. (a)~Drag coefficient over 25 Adam iterations. Bouzidi (blue) reduces $C_d$ substantially; standard bounce-back (red) makes little progress. (b)~Gradient magnitude on a log scale. Bouzidi gradients are ${\sim }35\times $ larger, providing a much stronger optimisation signal. Both use the same grid, physics, and optimiser; only the wall treatment differs}{figure.caption.5}{}}
+\newlabel{fig:optim@cref}{{[figure][2][]2}{[1][4][]5}{}{}{}}
+\bibcite{bouzidi2001}{9}
+\bibcite{bgk1954}{10}
+\bibcite{dhumieres2002}{11}
+\bibcite{clift1978}{12}
+\bibcite{mei2002}{13}
+\bibcite{zou1997}{14}
+\bibcite{list2022}{15}
+\bibcite{jax2018}{16}
+\gdef \@abspage@last{6}
