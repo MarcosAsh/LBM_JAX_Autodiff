@@ -36,8 +36,9 @@ flow through the boundary treatment into obstacle geometry parameters.
 This is in contrast to prior work that either uses first-order standard
 bounce-back (which provides no useful shape gradient) or treats wall
 distances as fixed. We validate the solver against the analytic
-Poiseuille flow solution and experimental sphere drag data at $Re = 100$
-(Clift et al.\ 1978). On a controlled comparison, Bouzidi boundary
+Poiseuille flow solution and the Clift, Grace, and Weber~1978 sphere
+drag correlation at $Re = 100$, reporting a four-resolution grid
+convergence study with time-averaged $C_d$. On a controlled comparison, Bouzidi boundary
 gradients are approximately $35\times$ stronger than standard bounce-back
 gradients, and shape optimisation with Bouzidi reaches a 37\% lower drag
 than the same optimisation with standard bounce-back. Gradient
@@ -203,7 +204,7 @@ f_i = \begin{cases}
 %
 where $i'$ is the opposite direction and $f^*$ denotes post-collision
 values. The $q < 0.5$ branch reaches one cell further into the fluid
-(the neighbor at $\mathbf{x} + \mathbf{e}_i$), which widens the
+(the neighbour at $\mathbf{x} + \mathbf{e}_i$), which widens the
 computational stencil and must be handled carefully at domain boundaries
 and in parallel decompositions.
 
@@ -327,40 +328,91 @@ $y$ & $u_x$ (LBM) & $u_x$ (analytic) \\
 \end{table}
 
 \subsection{Sphere drag at $Re = 100$}
+\label{sec:sphere_cd}
 
-A sphere of diameter $D = 16$ lattice cells is placed in a $128 \times
-64 \times 64$ domain with $U = 0.05$, giving $Re = 100$ and $\tau =
-0.524$. We run 4000 MRT steps.
+We validate the external-flow pipeline on the canonical test case of
+uniform flow past an isolated sphere at $Re = 100$. The reference value
+from the Clift, Grace, and Weber~\cite{clift1978} drag correlation is
+$C_d = 1.09$. In every case below the sphere has radius 0.5 in world
+coordinates, is centred in a $2{:}1{:}1$ domain, and sees free-stream
+$U = 0.05$ in lattice units, with $\tau$ set by $\nu = U D / Re$.
+Boundaries are Zou-He inlet/outlet and periodic in $y$, $z$.
 
-The Clift et al.~\cite{clift1978} reference value is $C_d = 1.09$. Our
-MRT simulation produces $C_d = 1.20$, a relative error of 10.3\%. This
-error is larger than typical for LBM at this resolution; Mei et
-al.~\cite{mei2002} report errors under 5\% at comparable diameters with
-carefully tuned MRT parameters. Our higher error is likely a combination
-of the modest blockage ratio ($D/L_y = 0.25$), MRT damping parameter
-choices, and the relatively short run (4000 steps may not be fully
-converged at this Re). To confirm that the error is dominated by grid
-resolution rather than a solver defect, we provide a fine-grid script
-(\texttt{09\_sphere\_cd\_fine\_grid.py}) that doubles the resolution to
-$D = 32$ on a $256 \times 128 \times 128$ grid. At this resolution, $C_d$
-approaches the Clift reference to within 5\%, consistent with the
-expected first-to-second-order convergence of the Bouzidi boundary
-scheme. A systematic grid convergence study across three or more
-resolutions is left to future work.
+Two observations turned out to matter more than expected. First, the
+wake in this regime has low-frequency unsteadiness: a single-snapshot
+$C_d$ moves by 10--15\% between samples. Any meaningful validation
+must time-average. Second, the blockage ratio $D / L_y = 0.25$ that
+we use throughout is known to inflate measured $C_d$ by several
+percent~\cite[ch.~9]{clift1978}; the finite-domain correction is
+physics, not numerical error. We chose not to widen the domain
+because the paper's focus is the gradient pipeline, not a
+quantitatively tight $C_d$ match.
 
-The BGK operator on the coarse grid produces $C_d = 0.75$ with large
-oscillations and rising velocity magnitude, confirming the advantage of
-MRT for stability near the lower limit of $\tau$.
-
-\subsection{Gradient verification}
-
-We verify gradients against central finite differences (step size
-$\epsilon = 10^{-4}$) in float64 mode (\texttt{JAX\_ENABLE\_X64}).
-\Cref{tab:gradients} reports results for three representative functions.
+\Cref{tab:cd_convergence} reports a four-resolution grid convergence
+study. Step counts scale with $n_x$ so every grid sees at least five
+flow-through times; the reported $C_d$ is the mean of samples taken
+every 500 steps over the final 30\% of the run, and the reported
+$\sigma$ is their standard deviation (a quantitative fingerprint of
+the wake unsteadiness). MRT ghost-mode relaxation rates are held at
+d'Humi\`eres' default damping values~\cite{dhumieres2002}: we did
+not tune them to the target $Re$, which is a known source of
+additional a few-percent error~\cite{mei2002} and a deliberate
+trade-off to keep the experiment reproducible rather than
+parameter-swept.
 
 \begin{table}[t]
 \centering
-\caption{Gradient verification in float64.}
+\caption{Sphere $C_d$ grid convergence at $Re = 100$ (MRT + Bouzidi).
+Time-averaged over the final 30\% of the run.}
+\label{tab:cd_convergence}
+\begin{tabular}{rcrcc}
+\toprule
+Grid & $D$ & steps & $C_d \pm \sigma$ & $|{\text{err}}|$ \\
+\midrule
+$\phantom{0}64 \times \phantom{0}32 \times \phantom{0}32$
+    &  8 & \phantom{0}8{,}000 & $1.29 \pm 0.02$ & 18.4\% \\
+$128 \times \phantom{0}64 \times \phantom{0}64$
+    & 16 & 16{,}000 & $1.19 \pm 0.04$ & \phantom{0}8.8\% \\
+$256 \times 128 \times 128$
+    & 32 & 28{,}000 & $1.19 \pm 0.07$ & \phantom{0}8.8\% \\
+$384 \times 192 \times 192$
+    & 48 & 40{,}000 & $1.17 \pm 0.08$ & \phantom{0}7.1\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The measured error decreases monotonically with refinement and settles
+near 7\% at the finest grid, where the residual gap is consistent with
+the blockage correction and the un-tuned MRT parameters. The observed
+convergence is not clean first- or second-order: the sequence hits a
+plateau because the remaining error is physics (blockage, reference
+correlation uncertainty, wake unsteadiness captured by finite-time
+averaging) rather than truncation. We report this explicitly rather
+than computing a nominal convergence order that would be dominated by
+those sources.
+
+For comparison, BGK on the $128 \times 64 \times 64$ grid at the same
+$\tau = 0.524$ produces $C_d = 0.75$ with rising velocity magnitude and
+large oscillations, confirming that MRT is the right choice near the
+lower limit of $\tau$.
+
+\subsection{Gradient verification}
+\label{sec:grad_verify}
+
+Gradient correctness is verified at two scales.
+
+\subsubsection{Local correctness (10 steps, float64)}
+
+We first confirm that reverse-mode AD through equilibrium, streaming,
+and Bouzidi produces the mathematically correct derivative, by running
+short simulations in float64 mode (\texttt{JAX\_ENABLE\_X64}) on CPU
+and comparing against central finite differences with step size
+$\epsilon = 10^{-4}$. \Cref{tab:gradients} reports three representative
+cases.
+
+\begin{table}[t]
+\centering
+\caption{Local gradient verification in float64, short simulations.}
 \label{tab:gradients}
 \begin{tabular}{lccc}
 \toprule
@@ -373,10 +425,58 @@ Bouzidi $\partial C_d/\partial r$ (10 steps) & 93.33275 & 93.33275 & $9.0 \times
 \end{tabular}
 \end{table}
 
-All three agree to better than $10^{-7}$ relative error, confirming that
-reverse-mode AD correctly differentiates the equilibrium, streaming, and
-Bouzidi boundary components of the solver. Verification was performed on
-CPU; the GPU solver uses float32 for performance.
+All three agree to better than $10^{-7}$ relative error, confirming
+that AD is implemented correctly locally. The verification is on CPU
+in float64; the production GPU pipeline runs float32.
+
+\subsubsection{Long-horizon behaviour across resolutions}
+\label{sec:grad_convergence}
+
+Local correctness is necessary but not sufficient. In the shape
+optimisation pipeline the gradient is taken through thousands of
+simulation steps in float32, a regime in which differentiable fluid
+solvers are known to accumulate sensitivities and lose numerical
+agreement with FD even when AD is implemented exactly. We therefore
+also run a grid-convergence study of $\partial C_d / \partial r$ at
+four resolutions ($D = 4, 6, 8, 12$) using the paper's soft-porosity
+and Bouzidi-$q$ differentiable pipeline, MRT collision, and
+${\sim}3$ flow-through times per run. The backward pass uses
+$O(\sqrt{n_{\text{steps}}})$ activation memory via chunked
+checkpointing. Results are in \Cref{tab:grad_convergence}.
+
+\begin{table}[t]
+\centering
+\caption{Grid convergence of $\partial C_d / \partial r$ under the
+paper's differentiable setup (MRT, soft porosity, Bouzidi-$q$,
+radius $r = 0.5$, $Re = 50$, $\epsilon = 10^{-3}$).}
+\label{tab:grad_convergence}
+\begin{tabular}{rcrrrc}
+\toprule
+Grid & $D$ & steps & AD & FD & Rel.\ err \\
+\midrule
+$32 \times 16 \times 16$ &  4 & 1920 & $-7.21$ & $-5.75$ & 25\% \\
+$48 \times 24 \times 24$ &  6 & 2880 & $+6.10$ & $+6.69$ &  \phantom{0}9\% \\
+$64 \times 32 \times 32$ &  8 & 3840 & $+7.10$ & $+5.17$ & 37\% \\
+$96 \times 48 \times 48$ & 12 & 5760 & $+1.05$ & $+1.35$ & 22\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The coarsest grid ($D = 4$, four cells across the sphere) reports a
+negative gradient: unphysical, but AD and FD agree on the
+(wrong-signed) answer, i.e.\ the solver is faithfully differentiating
+the geometry it actually sees at that resolution rather than the
+sphere one would want. Below about $D = 6$, Bouzidi is outside its
+accuracy regime and the gradient should not be trusted. From $D = 6$
+upward, AD and FD agree on sign; their relative disagreement is 9--37\%
+and reflects the combined effect of float32 precision, wake
+unsteadiness, and the sigmoid-smoothed geometry whose derivative is
+the dominant contributor to the gradient magnitude (see
+\Cref{sec:comparison}). We view these numbers as the realistic
+accuracy band of the production gradient, and we frame the
+optimisation results accordingly: Adam is robust to this level of
+gradient noise, but no part of the paper treats the gradient as a
+high-precision quantity at long horizons.
 
 
 %% ================================================================
@@ -503,6 +603,16 @@ The code is open-source at
 \url{https://github.com/MarcosAsh/LBM_JAX_Autodiff} and includes 49
 automated tests and a Modal cloud GPU worker for reproducibility.
 
+All numerical experiments in this paper were run with JAX and jaxlib
+$\geq$~0.4.20 (observed 0.9.2) and optax $\geq$~0.1.7 on a single NVIDIA
+A100 40\,GB via Modal. No pseudo-random seeds are used: the simulation
+is deterministic given the geometry, boundary conditions, and step
+count, so all tables are reproducible bit-for-bit from the released
+commit. The \texttt{modal\_worker.py} driver provides named entry
+points for every result reported below (e.g.\ \texttt{--example
+cd-convergence}, \texttt{--example grad-convergence},
+\texttt{--example optimisation-v2}).
+
 
 %% ================================================================
 \section{Conclusion}
@@ -536,11 +646,25 @@ grows with the surface area and grid resolution. Whether Adam or other
 first-order optimisers can navigate this landscape reliably at scale
 remains an open question.
 
-Planned extensions include differentiable ray-triangle intersection for
-mesh-based geometries (removing the restriction to analytic shapes), a
-systematic grid convergence study of the gradient across three or more
-resolutions, and application to more complex bodies such as Ahmed body
-drag reduction at higher Reynolds numbers.
+The gradient convergence study in \Cref{sec:grad_convergence} also
+makes visible two practical limits of the current pipeline. First,
+Bouzidi is no longer accurate when the sphere is resolved with fewer
+than roughly six cells across, so the optimiser cannot be allowed to
+shrink the radius into that regime; we enforce this with a lower
+radius bound. Second, at the long-horizon gradients the optimisation
+relies on, AD and FD disagree by 10--40\% even on the correctly-signed
+cases, a noise band that is consistent with float32 precision,
+unsteady wake sampling, and the sigmoid-smoothed geometry. The
+optimisation in \Cref{sec:optim} is robust to this level of
+gradient noise because Adam averages it across iterations, but
+applications that need a calibrated gradient (e.g.\ second-order
+methods) would not be served by this setup without further work.
+
+Planned extensions include differentiable ray-triangle intersection
+for mesh-based geometries (removing the restriction to analytic
+shapes), higher-dimensional design spaces such as free-form
+deformation fields, and application to more complex bodies such as
+Ahmed body drag reduction at higher Reynolds numbers.
 
 
 %% ================================================================
@@ -574,21 +698,23 @@ Boltzmann method,''
 \emph{Journal of Computational Physics}, vol.~307, pp.~291--307, 2016.
 
 \bibitem{holl2020}
-P.~Holl, N.~Thuerey, and V.~Koltun,
-``Learning to Control PDEs with Differentiable Physics,''
-\emph{ICLR}, 2020.
+P.~Holl, V.~Koltun, and N.~Thuerey,
+``Learning to control PDEs with differentiable physics,''
+in \emph{International Conference on Learning Representations (ICLR)},
+2020.
 
 \bibitem{bedrunka2021}
-M.~Bedrunka, D.~Wilde, M.~Kliemank, D.~Reith, H.~Froese, and
+M.~Bedrunka, D.~Wilde, M.~Kliemank, D.~Reith, H.~Foysi, and
 A.~Kr\"amer,
-``Lettuce: PyTorch-Based Lattice Boltzmann Framework,''
-\emph{Springer ICCS}, pp.~40--55, 2021.
+``Lettuce: PyTorch-based lattice Boltzmann framework,''
+in \emph{Computational Science -- ICCS 2021}, Lecture Notes in
+Computer Science, Springer, 2021, pp.~40--55.
 
 \bibitem{ataei2024}
 M.~Ataei, H.~Salehipour, and D.~Brinkerhoff,
-``XLB: A Differentiable Massively Parallel Lattice Boltzmann Library
+``XLB: A differentiable massively parallel lattice Boltzmann library
 in Python,''
-\emph{arXiv preprint arXiv:2311.16080}, 2024.
+\emph{arXiv:2311.16080}, 2024.
 
 \bibitem{latt2021}
 J.~Latt, C.~Malaspinas, D.~Kontaxakis, A.~Parmigiani, D.~Lagrava,

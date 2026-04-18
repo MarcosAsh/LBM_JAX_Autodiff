@@ -31,7 +31,7 @@ image = (
 )
 
 
-@app.function(image=image, gpu="A100", timeout=3600)
+@app.function(image=image, gpu="A100", timeout=7200)
 def run_example(name: str):
     """Run one of the example scripts on GPU."""
     import subprocess
@@ -47,6 +47,9 @@ def run_example(name: str):
         "bouzidi-vs-standard": "examples/07_bouzidi_vs_standard.py",
         "grad-convergence": "examples/08_gradient_convergence.py",
         "sphere-fine": "examples/09_sphere_cd_fine_grid.py",
+        "cd-convergence": "examples/10_cd_convergence.py",
+        "optimisation-v2": "examples/11_optimisation_v2.py",
+        "sharpness": "examples/12_sharpness_sensitivity.py",
     }
 
     if name not in examples:
