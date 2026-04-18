@@ -29,22 +29,28 @@
 \begin{onecolabstract}
 We present a fully differentiable D3Q19 Lattice Boltzmann solver in JAX
 that supports gradient-based shape optimisation through second-order
-accurate Bouzidi interpolated bounce-back boundary conditions. The
-Bouzidi fractional wall distances are computed via differentiable
-ray-surface intersection, allowing gradients of aerodynamic quantities to
-flow through the boundary treatment into obstacle geometry parameters.
-This is in contrast to prior work that either uses first-order standard
-bounce-back (which provides no useful shape gradient) or treats wall
-distances as fixed. We validate the solver against the analytic
-Poiseuille flow solution and the Clift, Grace, and Weber~1978 sphere
-drag correlation at $Re = 100$, reporting a four-resolution grid
-convergence study with time-averaged $C_d$. On a controlled comparison, Bouzidi boundary
-gradients are approximately $35\times$ stronger than standard bounce-back
-gradients, and shape optimisation with Bouzidi reaches a 37\% lower drag
-than the same optimisation with standard bounce-back. Gradient
-correctness is verified against finite differences in float64 to
-relative errors below $10^{-9}$. The solver, including BGK and MRT
-collision operators, is open-source at
+Bouzidi interpolated bounce-back boundary conditions. The Bouzidi
+fractional wall distances are computed via differentiable ray-surface
+intersection, providing a gradient path from obstacle geometry through
+the boundary treatment. This is the enabling difference: in the
+standard LBM formulation (halfway bounce-back with a binary solid
+mask) the drag is a piecewise-constant function of any smooth shape
+parameter, so the shape gradient is exactly zero almost everywhere
+and gradient-based optimisation is impossible without additional
+machinery. We verify directly that $\partial C_d / \partial r = 0$
+in that setting and non-zero under the Bouzidi pipeline. With a hard
+solid mask and Bouzidi $q$, Adam drives a physically plausible
+baseline ($C_d = 1.77$) down by 5.8\% via radius shrinkage. Adding a
+sigmoid-smoothed solid representation provides an additional
+gradient path; we report its benefits and its pitfalls (degenerate
+optima that exploit the smoothing) and show that the resulting
+behaviour depends strongly on the sharpness parameter. Solver
+validation is via Poiseuille flow and a four-resolution sphere drag
+convergence study against the Clift, Grace, and Weber (1978)
+correlation at $Re = 100$, with time-averaged $C_d$ converging to
+within 7\%. Local gradient correctness is verified against finite
+differences in float64 to relative errors below $10^{-9}$. The
+solver, including BGK and MRT collision operators, is open-source at
 \url{https://github.com/MarcosAsh/LBM_JAX_Autodiff}.
 
 \smallskip\noindent\textbf{Keywords:}
@@ -118,12 +124,15 @@ In this paper we present a D3Q19 LBM solver implemented entirely in
 JAX~\cite{jax2018} that makes this gradient chain concrete. Every
 component of the solver, from collision to streaming to force
 computation, is a pure function compatible with \texttt{jax.grad}. We
-validate the solver against analytic solutions and experimental data, and
-demonstrate gradient-based shape optimisation with Bouzidi boundary
-conditions. We compare the optimisation performance of Bouzidi gradients
-against standard bounce-back gradients on the same problem, providing
-direct evidence that second-order boundary treatment improves gradient
-quality for shape optimisation.
+validate the solver against the Poiseuille analytic solution and
+against a four-resolution sphere-drag convergence study at $Re =
+100$, and demonstrate gradient-based shape optimisation under four
+boundary treatments that isolate the role of each differentiable
+path. The main comparison we draw is not with a weaker variant of
+the Bouzidi pipeline: it is with classical LBM itself (halfway
+bounce-back + binary solid mask), for which we show the shape
+gradient is exactly zero. Making it non-zero is the enabling
+contribution of this work.
 
 
 %% ================================================================
@@ -472,7 +481,7 @@ upward, AD and FD agree on sign; their relative disagreement is 9--37\%
 and reflects the combined effect of float32 precision, wake
 unsteadiness, and the sigmoid-smoothed geometry whose derivative is
 the dominant contributor to the gradient magnitude (see
-\Cref{sec:comparison}). We view these numbers as the realistic
+\Cref{sec:optim_soft}). We view these numbers as the realistic
 accuracy band of the production gradient, and we frame the
 optimisation results accordingly: Adam is robust to this level of
 gradient noise, but no part of the paper treats the gradient as a
@@ -485,92 +494,173 @@ high-precision quantity at long horizons.
 
 \subsection{Problem setup}
 
-We demonstrate gradient-based drag minimisation on a sphere. The design
-variable is the sphere radius $r$. The objective is $\min_r C_d(r)$,
-computed by a differentiable forward simulation of 150 BGK steps on a
-$48 \times 24 \times 24$ grid at $Re = 50$ ($\tau = 0.518$). The
-sigmoid-smoothed solid representation (\Cref{eq:porosity}) and
-differentiable Bouzidi $q$ values provide the gradient signal. We use
-the Adam optimiser with learning rate $3 \times 10^{-3}$ and run 25
-iterations, clamping the radius to $[0.2, 0.8]$.
+The objective is $\min_r C_d(r)$ for a sphere of radius $r$ in
+uniform flow at $Re = 50$. Each iteration runs a differentiable
+forward simulation on a $96 \times 48 \times 48$ grid ($D = 12$) with
+MRT collision, 2000 steps ($\tau = 0.536$, ${\sim}2$ flow-through
+times), Zou-He inlet/outlet, and periodic $y$, $z$. Adam updates
+$r$ with $lr = 3 \times 10^{-3}$ for 60 iterations starting from
+$r = 0.5$, with $r$ clamped to $[0.3, 0.8]$ (the lower bound keeps
+the sphere in the regime where Bouzidi resolves its curvature; see
+\Cref{sec:grad_convergence}).
 
-The 150-step forward simulation does not reach full steady state at each
-evaluation. This is a deliberate trade-off: longer simulations per
-evaluation improve gradient accuracy but increase wall-clock time
-linearly (each additional step adds a forward and backward pass through
-the scan). At 150 steps, the drag estimate contains transient
-contributions that introduce noise in the gradient. Despite this, the
-optimiser makes consistent progress, as shown in \Cref{fig:optim}.
-Longer simulations (500+ steps) or a warm-start strategy that
-initialises from the previous converged state would reduce this noise
-at the cost of slower iteration.
+This setup is deliberately larger and longer than an earlier
+48x24x24, 150-step setup we tried: that grid produced a non-physical
+baseline $C_d \approx 0.43$ at which the forward flow had not yet
+developed, which in turn made any optimisation result a property of
+the transient rather than of the geometry. The $96 \times 48 \times 48$
+setup gives a physical baseline in the case that matters most
+(\Cref{sec:optim_hard}) and enables the boundary-treatment comparison
+below.
 
-\subsection{Optimisation results}
+\subsection{Four boundary treatments}
+\label{sec:optim_modes}
 
-Starting from $r = 0.5$ ($C_d = 0.431$), Adam with Bouzidi boundary
-gradients reduces the drag coefficient to a best of $C_d = 0.405$ over
-25 iterations, a 6\% reduction. The trajectory is non-monotonic due to
-the transient noise described above.
-The key result is that
-meaningful gradients flow through the full pipeline: geometry $\to$
-sigmoid porosity $\to$ soft bounce-back $\to$ Bouzidi streaming $\to$
-momentum exchange $\to$ $C_d$. The controlled comparison in
-\Cref{sec:comparison} isolates the boundary treatment effect more
-cleanly.
-
-\subsection{Bouzidi vs standard bounce-back}
-\label{sec:comparison}
-
-To isolate the effect of boundary treatment on gradient quality, we run
-the same optimisation problem twice: once with Bouzidi $q$ values from
-ray-sphere intersection, and once with $q = 0.5$ everywhere (standard
-midpoint bounce-back). Both use the same grid ($48 \times 24 \times
-24$), physics ($Re = 50$, BGK), and optimiser (Adam, $lr = 3 \times
-10^{-3}$, 25 iterations, 150 steps per evaluation).
-
-\Cref{tab:bouzidi_comparison} summarises the results from an NVIDIA A100
-GPU. \Cref{fig:optim} shows the per-iteration $C_d$ and gradient
-magnitude trajectories for both methods.
+To separate the contributions of the two differentiable paths in the
+pipeline (the sigmoid porosity of \Cref{eq:porosity} on the collision
+step, and the Bouzidi $q$ on the streaming step), we run the same
+optimisation problem under four boundary treatments:
+%
+\begin{itemize}\setlength\itemsep{0pt}
+    \item \textbf{halfway\_hard}: binary solid mask, $q = 0.5$
+    everywhere. This is classical production LBM.
+    \item \textbf{bouzidi\_hard}: binary solid mask, $q$ from
+    ray-sphere intersection (\Cref{eq:ray_sphere}).
+    \item \textbf{halfway\_soft}: sigmoid porosity ($\alpha = 20$),
+    $q = 0.5$ everywhere.
+    \item \textbf{bouzidi\_soft}: sigmoid porosity, $q$ from
+    ray-sphere intersection. (This is the full pipeline of the paper.)
+\end{itemize}
+%
+\Cref{tab:optim_modes} reports baseline $C_d$, best $C_d$ reached,
+mean $|\partial C_d / \partial r|$, and the final radius for each.
 
 \begin{table}[t]
 \centering
-\caption{Bouzidi vs standard bounce-back: same grid, physics, and
-optimiser. Only the wall treatment differs.}
-\label{tab:bouzidi_comparison}
-\begin{tabular}{lcc}
+\caption{Four-mode shape optimisation on the $96 \times 48 \times 48$
+grid. Adam, 60 iterations, $r_0 = 0.5$.}
+\label{tab:optim_modes}
+\small
+\begin{tabular}{lcccc}
 \toprule
-& Bouzidi & Standard \\
-& ($q$ from intersection) & ($q = 0.5$) \\
+Mode & base $C_d$ & best $C_d$ & avg $|\partial C_d/\partial r|$ & final $r$ \\
 \midrule
-Best $C_d$ achieved & 0.405 & 0.645 \\
-Avg $|\partial C_d / \partial r|$ & 7.74 & 0.22 \\
-$C_d$ reduction vs initial & 37.3\% & 5.9\% \\
+halfway\_hard  & 1.85 & -- (grad $=0$) & $0.0$           & 0.500 \\
+bouzidi\_hard  & 1.77 & 1.66           & $5.55$          & 0.314 \\
+halfway\_soft  & 0.43 & 0.003          & $6.30$          & 0.652 \\
+bouzidi\_soft  & 0.45 & 0.002          & $3.19$          & 0.663 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\begin{figure*}[t]
-\centering
-\includegraphics[width=0.85\textwidth]{optimization_trajectory.pdf}
-\caption{Bouzidi vs standard bounce-back optimisation trajectories.
-(a)~Drag coefficient over 25 Adam iterations. Bouzidi (blue) reduces
-$C_d$ substantially; standard bounce-back (red) makes little progress.
-(b)~Gradient magnitude on a log scale. Bouzidi gradients are
-${\sim}35\times$ larger, providing a much stronger optimisation signal.
-Both use the same grid, physics, and optimiser; only the wall treatment
-differs.}
-\label{fig:optim}
-\end{figure*}
+\subsection{Classical LBM has no shape gradient}
+\label{sec:optim_hard}
 
-The Bouzidi gradients are approximately $35\times$ larger in magnitude
-than the standard bounce-back gradients. The Bouzidi $q$ values carry
-continuous information about wall position within each lattice cell,
-providing a rich gradient signal. Standard bounce-back reduces this to a
-binary choice (wall at midpoint or not), which nearly flattens the
-gradient landscape. The optimisation with Bouzidi reaches a $C_d$ that
-is 37\% lower than the best standard bounce-back result. This is the
-central finding: second-order boundary treatment produces qualitatively
-better shape gradients.
+The \textbf{halfway\_hard} row is the enabling observation of this
+paper. With a binary solid mask and halfway bounce-back, the solver
+produces a physically reasonable $C_d = 1.85$ at $r = 0.5$ (an
+expected few-percent overestimate of the Clift $Re = 50$ value,
+consistent with the blockage and un-tuned MRT discussion in
+\Cref{sec:sphere_cd}). Its derivative with respect to $r$ is exactly
+$0.0$: AD returns zero, not a small numerical residual, because the
+only place $r$ enters the computational graph is through the solid
+mask $(|\mathbf{x} - \mathbf{c}| \leq r)$ which is a step function.
+There is no differentiable path from geometry to drag, so
+gradient-based optimisation is impossible in this setting without
+additional machinery.
+
+With Bouzidi $q$ and the same hard mask (\textbf{bouzidi\_hard}), the
+gradient becomes non-zero ($5.55$ on average) and Adam drives the
+optimisation from $C_d = 1.77$ at $r = 0.5$ to $C_d = 1.66$ at $r =
+0.31$ over 60 iterations, a 5.8\% reduction by radius shrinkage. This
+is the clean result: the only differentiable path is through $q(r)$,
+the optimiser uses it, and the outcome is physically sensible (a
+smaller sphere has less drag).
+
+The two rows together are the core claim: the existence of an AD
+path through Bouzidi is what makes gradient-based shape optimisation
+possible at all within the LBM, independent of any further smoothing
+of the geometry.
+
+\subsection{Soft porosity: additional signal, degenerate optima}
+\label{sec:optim_soft}
+
+Adding the sigmoid porosity field of \Cref{eq:porosity} introduces a
+second gradient path through the collision step. Both
+\textbf{halfway\_soft} and \textbf{bouzidi\_soft} have this path, and
+in both modes the optimiser drives $C_d$ close to zero while
+\emph{growing} the radius to roughly $0.66$.
+
+This is not an aerodynamic result. At $r = 0.66$ the soft obstacle
+fills most of the $L_y = L_z = 4$ cross-section, and the force on
+the obstacle stays small while the projected area $A$ in the $C_d$
+denominator grows. The optimiser exploits the smoothing: nothing
+penalises it for expanding a transparent blob that plugs the
+channel, and the porosity gradient points in that direction. This
+is a design-space pathology, not a solver defect: any objective that
+normalises by $A$ and any soft-mask parameterisation will admit it
+unless the geometry or the loss is constrained.
+
+Two further observations follow from this mode:
+%
+\begin{enumerate}\setlength\itemsep{0pt}
+    \item The \emph{gradient magnitude} comparison between
+    \textbf{bouzidi\_soft} and \textbf{halfway\_soft} does not favour
+    Bouzidi. Their avg $|\partial C_d / \partial r|$ values are 3.19
+    and 6.30 respectively; the porosity path dominates and is equally
+    available in both. The often-cited ``stronger gradients under
+    Bouzidi'' effect arises only when the porosity path is absent,
+    which in our experiments is the hard-mask case where halfway
+    bounce-back gives zero and Bouzidi gives $5.55$.
+    \item The baseline $C_d$ under soft porosity ($0.43$, $0.45$) is
+    well below the hard-mask value ($1.85$). The sigmoid smooths the
+    wall so effectively that the obstacle bleeds momentum rather
+    than imposing no-slip: at $\alpha = 20$ the transition zone is
+    roughly $1/\alpha = 0.05$ world units wide, which on this grid is
+    $1$--$2$ cells. That is thin enough to look sharp on a figure
+    but thick enough to change $C_d$ by a factor of four.
+\end{enumerate}
+
+\subsection{Sharpness sensitivity}
+\label{sec:sharpness}
+
+Given the above, the sigmoid sharpness $\alpha$ is a consequential
+hyperparameter. \Cref{tab:sharpness} reports $C_d$ and
+$\partial C_d / \partial r$ at fixed $r = 0.5$ on the same grid, as
+$\alpha$ varies over a decade.
+
+\begin{table}[t]
+\centering
+\caption{Sensitivity of $C_d$ and $\partial C_d / \partial r$ to the
+sigmoid sharpness $\alpha$, on the $96 \times 48 \times 48$ grid at
+$r = 0.5$, 2880 MRT steps.}
+\label{tab:sharpness}
+\begin{tabular}{rcccc}
+\toprule
+$\alpha$ & $C_d$ & AD & FD & Rel.\ err \\
+\midrule
+ 5 & $3.76$ & $+15.16$ & $+15.47$ & $\phantom{0}2.0$\% \\
+10 & $1.35$ & $\phantom{0}+3.66$ & $\phantom{0}+3.70$ & $\phantom{0}1.0$\% \\
+20 & $0.87$ & $\phantom{0}+1.85$ & $\phantom{0}+2.28$ & $18.8$\% \\
+40 & $0.33$ & $\phantom{0}+9.49$ & $+10.40$ & $\phantom{0}8.8$\% \\
+80 & $0.54$ & $\phantom{0}+2.44$ & $\phantom{0}+3.35$ & $27.2$\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Both $C_d$ and the gradient magnitude depend strongly on $\alpha$:
+$C_d$ spans an order of magnitude, and $|\text{grad}|$ spans roughly
+the same. The gradient sign, however, is stable (positive at every
+$\alpha$). AD and FD agree within $3$\% at the small-$\alpha$ smooth
+end where the sigmoid is effectively linear over the
+$\epsilon$-perturbation, and the disagreement widens to $27$\% as
+$\alpha$ grows and the transition localises. Our choice of $\alpha
+= 20$ is not cherry-picked for the optimisation outcome, but it is a
+setting whose quantitative behaviour cannot be extracted from the
+paper's results alone. Anyone reusing this pipeline on a new problem
+must re-tune $\alpha$ and should report the forward $C_d$ at
+that $\alpha$ against the hard-mask value to understand how much
+physics the smoothing has removed.
 
 
 %% ================================================================
@@ -618,20 +708,36 @@ cd-convergence}, \texttt{--example grad-convergence},
 \section{Conclusion}
 \label{sec:conclusion}
 
-We have presented a differentiable D3Q19 Lattice Boltzmann solver that
-supports gradient-based shape optimisation through Bouzidi interpolated
-bounce-back boundary conditions. The solver is validated against the
-Poiseuille analytic solution (L2 error 0.38\%) and experimental sphere
-drag at $Re = 100$ (10.3\% relative error versus the Clift reference on
-a 16-cell diameter grid, reducing to under 5\% at 32-cell diameter).
-Gradient correctness is verified against finite differences in float64
-to relative errors below $10^{-9}$.
+We have presented a differentiable D3Q19 Lattice Boltzmann solver
+with second-order Bouzidi interpolated bounce-back boundary
+conditions whose fractional wall distances $q$ are differentiable
+with respect to geometry via ray-surface intersection. The solver is
+validated against the Poiseuille analytic solution (L2 error
+$0.38$\%) and against the Clift, Grace, and Weber drag correlation
+at $Re = 100$ through a four-resolution grid convergence study with
+time-averaged $C_d$, with the finest grid settling near 7\% relative
+error where the remaining gap is consistent with the blockage
+correction and un-tuned MRT damping. Local gradient correctness is
+verified against finite differences in float64 to relative errors
+below $10^{-9}$.
 
-The central contribution is making the Bouzidi fractional wall distances
-differentiable with respect to geometry parameters. On a controlled
-comparison, Bouzidi gradients are $35\times$ stronger than standard
-bounce-back gradients, and optimisation with Bouzidi reaches a 37\%
-lower drag minimum than the same optimisation with standard bounce-back.
+The enabling observation is that in the classical LBM formulation
+(halfway bounce-back with a binary solid mask) the drag is a
+piecewise-constant function of smooth shape parameters, so the AD
+gradient is \emph{exactly zero} and gradient-based shape optimisation
+is impossible in that setting. Our pipeline closes this gap:
+replacing $q = 0.5$ with the ray-intersection $q(r)$ yields a
+non-zero gradient that Adam uses to reduce a physically plausible
+baseline $C_d = 1.77$ to $1.66$ in 60 iterations by shrinking the
+radius. Adding a sigmoid-smoothed solid representation supplies a
+second gradient path through the collision step; we find that this
+path dominates the numerical magnitude of the gradient when it is
+present (so ``stronger-gradient'' claims that compare soft-porosity
+variants are really claims about the porosity path, not about
+Bouzidi), and that objectives normalised by projected area admit
+degenerate optima that grow the smoothed obstacle to plug the
+channel. These are design considerations, not solver defects, and
+the paper documents them so that downstream users can avoid them.
 
 \subsection*{Limitations and future work}
 
