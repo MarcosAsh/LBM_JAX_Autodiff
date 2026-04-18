@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2026/dev/Arch Linux) (preloaded format=pdflatex 2026.2.19)  18 APR 2026 17:39
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2026/dev/Arch Linux) (preloaded format=pdflatex 2026.2.19)  18 APR 2026 18:32
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -530,110 +530,126 @@ Package hyperref Warning: Token not allowed in a PDF string (Unicode):
 
 
 [3 <./figures/poiseuille_profile.pdf>]
-Overfull \hbox (57.74252pt too wide) in paragraph at lines 426--435
- [][] 
- []
+<figures/cd_convergence.pdf, id=235, 238.69789pt x 180.30267pt>
+File: figures/cd_convergence.pdf Graphic file (type pdf)
+<use figures/cd_convergence.pdf>
+Package pdftex.def Info: figures/cd_convergence.pdf  used on input line 397.
+(pdftex.def)             Requested size: 245.24199pt x 185.2516pt.
+
+Underfull \vbox (badness 6445) has occurred while \output is active []
 
 
-Underfull \vbox (badness 1281) has occurred while \output is active []
 
 
 
+[4 <./figures/cd_convergence.pdf>]
+<figures/optim_summary.pdf, id=316, 484.41591pt x 182.38828pt>
+File: figures/optim_summary.pdf Graphic file (type pdf)
+<use figures/optim_summary.pdf>
+Package pdftex.def Info: figures/optim_summary.pdf  used on input line 574.
+(pdftex.def)             Requested size: 450.43253pt x 169.59428pt.
 
 
-[4]
-Overfull \hbox (27.3017pt too wide) in paragraph at lines 544--554
- [][] 
- []
 
-
-Underfull \hbox (badness 10000) in paragraph at lines 572--579
+Underfull \hbox (badness 10000) in paragraph at lines 608--615
 []\OT1/cmr/m/n/10 With Bouzidi $\OML/cmm/m/it/10 q$ \OT1/cmr/m/n/10 and the sam
 e hard mask
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 572--579
+Underfull \hbox (badness 10000) in paragraph at lines 608--615
 \OT1/cmr/m/n/10 (\OT1/cmr/bx/n/10 bouzidi[]hard\OT1/cmr/m/n/10 ), the gra-di-en
 t be-comes non-zero
  []
 
 
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 607--615
+Underfull \hbox (badness 10000) in paragraph at lines 643--651
 []\OT1/cmr/m/n/10 The \OT1/cmr/m/it/10 gra-di-ent mag-ni-tude \OT1/cmr/m/n/10 c
 om-par-i-son be-tween
  []
 
 
-Underfull \hbox (badness 1590) in paragraph at lines 607--615
+Underfull \hbox (badness 1590) in paragraph at lines 643--651
 \OT1/cmr/m/n/10 6.30 re-spec-tively; the poros-ity path dom-i-nates
  []
 
 
 
 [5]
-Underfull \hbox (badness 2261) in paragraph at lines 696--705
+<figures/sharpness_sensitivity.pdf, id=332, 238.14333pt x 180.38449pt>
+File: figures/sharpness_sensitivity.pdf Graphic file (type pdf)
+<use figures/sharpness_sensitivity.pdf>
+Package pdftex.def Info: figures/sharpness_sensitivity.pdf  used on input line 
+689.
+(pdftex.def)             Requested size: 245.24199pt x 185.7623pt.
+
+
+
+
+[6 <./figures/optim_summary.pdf> <./figures/sharpness_sensitivity.pdf>]
+Underfull \hbox (badness 2261) in paragraph at lines 743--752
 \OT1/cmr/m/n/10 be-low (e.g. \OT1/cmtt/m/n/10 --example cd-convergence\OT1/cmr/
 m/n/10 , \OT1/cmtt/m/n/10 --example
  []
 
 
-
-
-Underfull \hbox (badness 1092) in paragraph at lines 711--723
+Underfull \hbox (badness 1092) in paragraph at lines 758--770
 \OT1/cmr/m/n/10 mann solver with second-order Bouzidi in-ter-po-lated
  []
 
 
-Underfull \hbox (badness 1082) in paragraph at lines 724--741
+Underfull \hbox (badness 1082) in paragraph at lines 771--788
 []\OT1/cmr/m/n/10 The en-abling ob-ser-va-tion is that in the clas-si-cal
  []
 
 
-Underfull \hbox (badness 2351) in paragraph at lines 744--754
+
+
+Underfull \hbox (badness 2351) in paragraph at lines 791--801
 \OT1/cmr/m/n/10 pa-ram-e-ter (sphere ra-dius). Ex-tend-ing to higher-
  []
 
 
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
-[6]
-Underfull \hbox (badness 6608) in paragraph at lines 785--788
+
+
+[7]
+Underfull \hbox (badness 6608) in paragraph at lines 832--835
 []\OT1/cmr/m/n/10 T. Kr^^?uger, H. Kusumaat-maja, A. Kuzmin,
  []
 
 
-Underfull \hbox (badness 1642) in paragraph at lines 790--793
+Underfull \hbox (badness 1642) in paragraph at lines 837--840
 \OT1/cmr/m/n/10 pa-ram-e-ter iden-ti-fi-ca-tion,'' \OT1/cmr/m/it/10 Com-put-ers
  & Flu-ids\OT1/cmr/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 3758) in paragraph at lines 795--799
+Underfull \hbox (badness 3758) in paragraph at lines 842--846
 []\OT1/cmr/m/n/10 M.J. Krause, G. Th^^?ater, and V. Heuve-line,
  []
 
 
-
-
-Underfull \hbox (badness 2088) in paragraph at lines 826--832
+Underfull \hbox (badness 2088) in paragraph at lines 873--879
 \OT1/cmr/m/n/10 giani, D. La-grava, F. Brogi, M.B. Bel-gacem,
  []
 
 
-Underfull \hbox (badness 3343) in paragraph at lines 826--832
+Underfull \hbox (badness 3343) in paragraph at lines 873--879
 \OT1/cmr/m/n/10 Y. Thorim-bert, S. Leclaire, S. Li, F. Mar-
  []
 
 
-Underfull \hbox (badness 1694) in paragraph at lines 826--832
+Underfull \hbox (badness 1694) in paragraph at lines 873--879
 \OT1/cmr/m/n/10 son, J. Lemus, C. Kot-sa-los, R. Con-ber, and
  []
 
 
 
-[7] (./paper.aux)
+
+
+[8] (./paper.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
@@ -642,38 +658,41 @@ Package rerunfilecheck Info: File `paper.out' has not changed.
 (rerunfilecheck)             Checksum: 75FBCE7198133A5CD8A92A2EEAB2D81C;4455.
  ) 
 Here is how much of TeX's memory you used:
- 14114 strings out of 475171
- 231023 string characters out of 5767095
- 645350 words of memory out of 5000000
- 36885 multiletter control sequences out of 15000+600000
+ 14154 strings out of 475171
+ 232240 string characters out of 5767095
+ 644913 words of memory out of 5000000
+ 36921 multiletter control sequences out of 15000+600000
  571116 words of font info for 83 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 75i,13n,79p,373b,457s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,13n,79p,1032b,535s stack positions out of 10000i,1000n,20000p,200000b,200000s
  </home/marcosash/.texlive/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1000.600
 pk></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share
 /texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texmf-dist/fo
 nts/type1/public/amsfonts/cm/cmbx9.pfb></usr/share/texmf-dist/fonts/type1/publi
-c/amsfonts/cm/cmex10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/
-cmmi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></u
-sr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr/share/texmf-
-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/share/texmf-dist/fonts/type
-1/public/amsfonts/cm/cmmi7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfon
-ts/cm/cmmi9.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb
-></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/te
-xmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texmf-dist/fonts/t
-ype1/public/amsfonts/cm/cmr7.pfb></usr/share/texmf-dist/fonts/type1/public/amsf
-onts/cm/cmr9.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.p
-fb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/share/
-texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/share/texmf-dist/font
-s/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texmf-dist/fonts/type1/public/
-amsfonts/cm/cmsy9.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmt
-i10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/
-share/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb></usr/share/texmf-dis
-t/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on paper.pdf (7 pages, 346311 bytes).
+c/amsfonts/cm/cmex10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cme
+xtra/cmex8.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb
+></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/share/t
+exmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr/share/texmf-dist/fonts
+/type1/public/amsfonts/cm/cmmi6.pfb></usr/share/texmf-dist/fonts/type1/public/a
+msfonts/cm/cmmi7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi
+8.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/sha
+re/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texmf-dist/f
+onts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texmf-dist/fonts/type1/publ
+ic/amsfonts/cm/cmr6.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/c
+mr7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/sh
+are/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/share/texmf-dist/f
+onts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/pub
+lic/amsfonts/cm/cmsy5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm
+/cmsy6.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></us
+r/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texmf-d
+ist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/share/texmf-dist/fonts/type
+1/public/amsfonts/cm/cmtt10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfo
+nts/cm/cmtt9.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msb
+m10.pfb>
+Output written on paper.pdf (8 pages, 430419 bytes).
 PDF statistics:
- 408 PDF objects out of 1000 (max. 8388607)
- 312 compressed objects within 4 object streams
- 70 named destinations out of 1000 (max. 500000)
- 206 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 608 PDF objects out of 1000 (max. 8388607)
+ 371 compressed objects within 4 object streams
+ 74 named destinations out of 1000 (max. 500000)
+ 221 words of extra memory for PDF output out of 10000 (max. 10000000)
 

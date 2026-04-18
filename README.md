@@ -2,7 +2,11 @@
 
 **Differentiable 3D Lattice Boltzmann solver in JAX for inverse fluid design.**
 
-Backpropagate through hundreds of simulation timesteps with `jax.grad` and optimize boundary conditions, obstacle geometry, or viscosity to hit a target flow field or drag coefficient.
+Backpropagate through thousands of simulation timesteps with `jax.grad` and optimise boundary conditions, obstacle geometry, or viscosity to hit a target flow field or drag coefficient.
+
+The key point: in the standard LBM formulation (halfway bounce-back + a binary solid mask) the shape gradient is *exactly zero* — gradient-based shape optimisation is impossible. This repo makes the [Bouzidi interpolated bounce-back](https://en.wikipedia.org/wiki/Lattice_Boltzmann_methods) fractional wall distance `q` differentiable through ray-sphere intersection, turning a zero-gradient problem into a non-zero-gradient one.
+
+**Paper**: [`paper/paper.pdf`](paper/paper.pdf) — 8 pages with validation, gradient convergence, a four-mode boundary-condition comparison, and sharpness sensitivity.
 
 ```
                     ┌─────────────────────────────────────────────────┐
@@ -22,39 +26,33 @@ Backpropagate through hundreds of simulation timesteps with `jax.grad` and optim
                     └─────────────────────────────────────────────────┘
 ```
 
-## Shape optimization on A100
+## Shape optimisation on A100
 
-Gradient descent on sphere radius to minimize drag. The solver differentiates through the Bouzidi wall distances into the geometry:
-
-```
-Iter  Radius    Cd
-  0   0.5000    0.3741  ###########
-  1   0.5057    0.3728  ###########
-  3   0.5209    0.2800  ########
-  5   0.5376    0.2073  ######
-  9   0.5772    0.1835  #####
- 11   0.5900    0.0845  ##
- 23   0.5894    0.0943  ##
-
-Initial Cd: 0.374  ──►  Final Cd: 0.119  (68% drag reduction)
-```
-
-## Sphere drag at Re=100 (MRT collision)
-
-128x64x64 grid, D=16 lattice cells, 4000 MRT steps on A100:
+Adam on sphere radius with MRT + Bouzidi + hard solid mask on a 96x48x48 grid, 2000 steps per iteration (from `examples/11_optimisation_v2.py`):
 
 ```
-  Step      Cd          Fx      max|u|
-  2800    1.0466    0.272109    0.058354
-  3000    1.0094    0.262442    0.058363
-  3200    1.1399    0.296364    0.058643
-  3400    1.1914    0.309771    0.058437
-  3600    1.3701    0.356236    0.057817
-  3800    1.1898    0.309340    0.058620
-  4000    1.2017    0.312454    0.059805
-
-Final Cd: 1.20  |  Clift reference: 1.09  |  Error: 10%
+Mode           base Cd   best Cd   avg |grad|   final r
+halfway_hard   1.85      --        0.0          0.500     (classical LBM, grad=0)
+bouzidi_hard   1.77      1.66      5.55         0.314     (Bouzidi enables optimisation)
+halfway_soft   0.43      0.003     6.30         0.652     (soft porosity, degenerate)
+bouzidi_soft   0.45      0.002     3.19         0.663     (soft porosity, degenerate)
 ```
+
+The `halfway_hard` row is the baseline classical LBM: the solver verifies `dCd/dr = 0` directly via AD, because the binary solid mask is a step function. Replacing `q = 0.5` with the ray-sphere `q(r)` (`bouzidi_hard`) makes the gradient non-zero and Adam reduces a physical Cd = 1.77 to 1.66 by shrinking the radius — the clean positive result. Soft-porosity modes reach a degenerate optimum; the paper documents why.
+
+## Sphere drag at Re=100 (grid convergence study)
+
+Time-averaged `Cd` over the final 30% of each run from `examples/10_cd_convergence.py`:
+
+```
+Grid              D   steps    Cd ± σ          rel err vs Clift 1.09
+ 64× 32× 32       8    8,000   1.29 ± 0.02     18%
+128× 64× 64      16   16,000   1.19 ± 0.04      9%
+256×128×128      32   28,000   1.19 ± 0.07      9%
+384×192×192      48   40,000   1.17 ± 0.08      7%
+```
+
+The residual 7% gap at the finest grid is consistent with the blockage correction (D/L_y = 0.25) and un-tuned MRT damping — i.e. physics, not numerical error. See [`paper/figures/cd_convergence.pdf`](paper/figures/cd_convergence.pdf) for the plot.
 
 ## Poiseuille flow validation
 
@@ -100,8 +98,10 @@ Run on GPU via [Modal](https://modal.com):
 
 ```bash
 pip install modal && modal setup
-modal run modal_worker.py --example channel
-modal run modal_worker.py --example optimize
+modal run modal_worker.py --example cd-convergence     # sphere drag convergence study
+modal run modal_worker.py --example grad-convergence   # dCd/dr grid convergence
+modal run modal_worker.py --example optimisation-v2    # four-mode shape optimisation
+modal run modal_worker.py --example sharpness          # alpha sensitivity sweep
 modal run modal_worker.py --tests
 ```
 
@@ -168,7 +168,11 @@ docs/                    mkdocs-material site with guides and API reference
 
 ## What's novel
 
-Differentiable LBM exists (adjoint methods, PhiFlow). What's new here is making **Bouzidi interpolated bounce-back differentiable** -- gradients flow through the fractional wall distance *q* into obstacle geometry, enabling shape optimization with 2nd-order accurate wall treatment. Most prior work uses standard bounce-back (1st order, no shape gradient) or treats *q* as fixed.
+Differentiable fluid solvers exist (adjoint LBM, PhiFlow, Lettuce, XLB). The contribution here is specifically:
+
+- **A shape gradient where there was none.** Classical LBM with halfway bounce-back + binary solid mask gives `dCd/dr = 0` exactly (verified directly; not a small numerical residual). This repo's Bouzidi + ray-sphere `q` pipeline gives a non-zero gradient, which is what makes gradient-based shape optimisation possible in the first place.
+- **Honest about the soft-porosity trade-off.** Sigmoid-smoothed solids (List et al. 2022) add a second gradient path but admit degenerate optima under area-normalised objectives; the paper documents the trade-off rather than papering over it.
+- **Reproducible.** Every figure and table in the paper is regenerated from a single `modal run modal_worker.py --example <name>` call against an A100.
 
 ## Tests
 

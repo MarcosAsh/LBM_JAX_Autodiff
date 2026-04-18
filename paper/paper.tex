@@ -374,21 +374,34 @@ parameter-swept.
 \caption{Sphere $C_d$ grid convergence at $Re = 100$ (MRT + Bouzidi).
 Time-averaged over the final 30\% of the run.}
 \label{tab:cd_convergence}
-\begin{tabular}{rcrcc}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}rcrcc@{}}
 \toprule
 Grid & $D$ & steps & $C_d \pm \sigma$ & $|{\text{err}}|$ \\
 \midrule
-$\phantom{0}64 \times \phantom{0}32 \times \phantom{0}32$
+$\phantom{0}64{\times}\phantom{0}32{\times}\phantom{0}32$
     &  8 & \phantom{0}8{,}000 & $1.29 \pm 0.02$ & 18.4\% \\
-$128 \times \phantom{0}64 \times \phantom{0}64$
+$128{\times}\phantom{0}64{\times}\phantom{0}64$
     & 16 & 16{,}000 & $1.19 \pm 0.04$ & \phantom{0}8.8\% \\
-$256 \times 128 \times 128$
+$256{\times}128{\times}128$
     & 32 & 28{,}000 & $1.19 \pm 0.07$ & \phantom{0}8.8\% \\
-$384 \times 192 \times 192$
+$384{\times}192{\times}192$
     & 48 & 40{,}000 & $1.17 \pm 0.08$ & \phantom{0}7.1\% \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{cd_convergence.pdf}
+\caption{Sphere $C_d$ grid convergence at $Re = 100$. Points: LBM
+time-averaged $C_d$ with $\pm \sigma$ error bars (Table
+\ref{tab:cd_convergence}). Dashed line: Clift correlation. The
+residual ${\sim}7$\% gap at the finest grid is consistent with
+blockage ($D/L_y = 0.25$) and the un-tuned MRT relaxation rates.}
+\label{fig:cd_convergence}
+\end{figure}
 
 The measured error decreases monotonically with refinement and settles
 near 7\% at the finest grid, where the residual gap is consistent with
@@ -423,13 +436,15 @@ cases.
 \centering
 \caption{Local gradient verification in float64, short simulations.}
 \label{tab:gradients}
-\begin{tabular}{lccc}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lccc@{}}
 \toprule
-Test & AD & FD & Rel.\ error \\
+Test & AD & FD & Rel.\ err \\
 \midrule
-Equilibrium $\partial(\sum f^{eq})/\partial\rho$ & 64.000001 & 63.999997 & $6.2 \times 10^{-8}$ \\
-Multi-step $\partial\bar{\rho}/\partial U$ (5 steps) & 0.611238 & 0.611238 & $1.9 \times 10^{-9}$ \\
-Bouzidi $\partial C_d/\partial r$ (10 steps) & 93.33275 & 93.33275 & $9.0 \times 10^{-10}$ \\
+$\partial(\sum f^{eq})/\partial\rho$            & 64.000001 & 63.999997 & $6.2 \times 10^{-8}$  \\
+$\partial\bar{\rho}/\partial U$ (5~steps)        & 0.611238  & 0.611238  & $1.9 \times 10^{-9}$  \\
+Bouzidi $\partial C_d/\partial r$ (10~steps)     & 93.33275  & 93.33275  & $9.0 \times 10^{-10}$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -540,18 +555,39 @@ mean $|\partial C_d / \partial r|$, and the final radius for each.
 \caption{Four-mode shape optimisation on the $96 \times 48 \times 48$
 grid. Adam, 60 iterations, $r_0 = 0.5$.}
 \label{tab:optim_modes}
-\small
-\begin{tabular}{lcccc}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lcccc@{}}
 \toprule
-Mode & base $C_d$ & best $C_d$ & avg $|\partial C_d/\partial r|$ & final $r$ \\
+Mode & base $C_d$ & best $C_d$ & avg $|g|$ & final $r$ \\
 \midrule
-halfway\_hard  & 1.85 & -- (grad $=0$) & $0.0$           & 0.500 \\
-bouzidi\_hard  & 1.77 & 1.66           & $5.55$          & 0.314 \\
-halfway\_soft  & 0.43 & 0.003          & $6.30$          & 0.652 \\
-bouzidi\_soft  & 0.45 & 0.002          & $3.19$          & 0.663 \\
+halfway\_hard  & 1.85 & --          & $0.0$  & 0.500 \\
+bouzidi\_hard  & 1.77 & 1.66        & $5.55$ & 0.314 \\
+halfway\_soft  & 0.43 & 0.003       & $6.30$ & 0.652 \\
+bouzidi\_soft  & 0.45 & 0.002       & $3.19$ & 0.663 \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.9\textwidth]{optim_summary.pdf}
+\caption{Four-mode optimisation summary from
+Table~\ref{tab:optim_modes}. \textbf{(a)} Baseline vs best $C_d$ per
+mode. \texttt{halfway\_hard} cannot be optimised: its shape gradient
+is exactly zero. \texttt{bouzidi\_hard} starts from a physical
+baseline ($C_d = 1.77$, close to the Clift dashed line) and reaches
+$1.66$ by shrinking the radius, the clean physical result. Both
+soft-porosity modes drive $C_d \to 0$ via the degenerate ``grow to
+plug the channel'' solution discussed in \Cref{sec:optim_soft}.
+\textbf{(b)} Average $|\partial C_d/\partial r|$ over 60 iterations.
+The classical halfway-hard bar is exactly zero (grey); every other
+mode has a non-zero gradient, but the porosity path dominates the
+magnitude in both soft modes, so the common ``Bouzidi gives stronger
+gradients'' comparison is mostly a statement about soft porosity
+rather than about Bouzidi itself.}
+\label{fig:optim_summary}
+\end{figure*}
 
 \subsection{Classical LBM has no shape gradient}
 \label{sec:optim_hard}
@@ -647,6 +683,17 @@ $\alpha$ & $C_d$ & AD & FD & Rel.\ err \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{sharpness_sensitivity.pdf}
+\caption{Sensitivity of $C_d$ (blue, left axis) and
+$|\partial C_d/\partial r|$ (red/green, right axis) to the sigmoid
+sharpness $\alpha$ at $r = 0.5$ on the $96 \times 48 \times 48$ grid.
+The gradient sign is stable across a decade in $\alpha$; magnitudes
+are not. AD and FD track each other closely throughout.}
+\label{fig:sharpness}
+\end{figure}
 
 Both $C_d$ and the gradient magnitude depend strongly on $\alpha$:
 $C_d$ spans an order of magnitude, and $|\text{grad}|$ spans roughly
