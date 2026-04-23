@@ -10,6 +10,7 @@
 \usepackage{abstract}
 \usepackage{xcolor}
 \usepackage{subcaption}
+\usepackage{orcidlink}
 
 \graphicspath{{figures/}}
 
@@ -20,14 +21,14 @@
 
 \title{\textbf{Differentiable Lattice Boltzmann Simulation with\\Second-Order Boundary Conditions\\for Gradient-Based Shape Optimisation}}
 
-\author{Marcos Ashton Iglesias}
+\author{Marcos Ashton Iglesias\,\orcidlink{0009-0007-0624-9420}}
 \affil{Department of Computer Science, University of Exeter, Exeter, UK}
 
 \date{}
 \maketitle
 
 \begin{onecolabstract}
-We present a fully differentiable D3Q19 Lattice Boltzmann solver in JAX
+I present a fully differentiable D3Q19 Lattice Boltzmann solver in JAX
 that supports gradient-based shape optimisation through second-order
 Bouzidi interpolated bounce-back boundary conditions. The Bouzidi
 fractional wall distances are computed via differentiable ray-surface
@@ -37,12 +38,12 @@ standard LBM formulation (halfway bounce-back with a binary solid
 mask) the drag is a piecewise-constant function of any smooth shape
 parameter, so the shape gradient is exactly zero almost everywhere
 and gradient-based optimisation is impossible without additional
-machinery. We verify directly that $\partial C_d / \partial r = 0$
+machinery. I verify directly that $\partial C_d / \partial r = 0$
 in that setting and non-zero under the Bouzidi pipeline. With a hard
 solid mask and Bouzidi $q$, Adam drives a physically plausible
 baseline ($C_d = 1.77$) down by 5.8\% via radius shrinkage. Adding a
 sigmoid-smoothed solid representation provides an additional
-gradient path; we report its benefits and its pitfalls (degenerate
+gradient path; I report its benefits and its pitfalls (degenerate
 optima that exploit the smoothing) and show that the resulting
 behaviour depends strongly on the sharpness parameter. Solver
 validation is via Poiseuille flow and a four-resolution sphere drag
@@ -120,17 +121,17 @@ $\partial C_d / \partial r$ through the chain
 \label{eq:chain}
 \end{equation}
 
-In this paper we present a D3Q19 LBM solver implemented entirely in
+In this paper I present a D3Q19 LBM solver implemented entirely in
 JAX~\cite{jax2018} that makes this gradient chain concrete. Every
 component of the solver, from collision to streaming to force
-computation, is a pure function compatible with \texttt{jax.grad}. We
+computation, is a pure function compatible with \texttt{jax.grad}. I
 validate the solver against the Poiseuille analytic solution and
 against a four-resolution sphere-drag convergence study at $Re =
 100$, and demonstrate gradient-based shape optimisation under four
 boundary treatments that isolate the role of each differentiable
-path. The main comparison we draw is not with a weaker variant of
+path. The main comparison I draw is not with a weaker variant of
 the Bouzidi pipeline: it is with classical LBM itself (halfway
-bounce-back + binary solid mask), for which we show the shape
+bounce-back + binary solid mask), for which I show the shape
 gradient is exactly zero. Making it non-zero is the enabling
 contribution of this work.
 
@@ -141,7 +142,7 @@ contribution of this work.
 
 \subsection{D3Q19 lattice Boltzmann}
 
-We use the three-dimensional D3Q19 lattice with 19 discrete velocity
+I use the three-dimensional D3Q19 lattice with 19 discrete velocity
 directions: one rest, six axis-aligned, and twelve diagonal. The
 quadrature weights are $w_0 = 1/3$, $w_{1\text{--}6} = 1/18$, and
 $w_{7\text{--}18} = 1/36$. The lattice speed of sound squared is $c_s^2
@@ -189,7 +190,7 @@ where $S = \text{diag}(s_0, \ldots, s_{18})$ contains the per-moment
 relaxation rates. Conserved moments (density, momentum) have $s_k = 0$.
 Stress moments relax at the physical rate $s_k = 1/\tau$. Ghost and
 higher-order moments are damped aggressively ($s_k = 1.2$--$1.98$)
-following~\cite{dhumieres2002}. Our implementation uses the sparse
+following~\cite{dhumieres2002}. My implementation uses the sparse
 forward and inverse transforms, avoiding a full $19 \times 19$ matrix
 multiply.
 
@@ -235,7 +236,7 @@ through it automatically.
 \subsection{Differentiable solid representation}
 
 The binary solid mask is a step function with zero gradient almost
-everywhere. Following List et al.~\cite{list2022}, we replace it with a
+everywhere. Following List et al.~\cite{list2022}, I replace it with a
 sigmoid-smoothed porosity field:
 %
 \begin{equation}
@@ -262,7 +263,7 @@ through both components of the LBM update.
 
 \subsection{Force computation}
 
-We use the Mei-Luo-Shyy momentum exchange method~\cite{mei2002}. For
+I use the Mei-Luo-Shyy momentum exchange method~\cite{mei2002}. For
 each fluid node adjacent to a solid boundary, the force contribution
 from lattice link $i$ is
 $\mathbf{F}_i = \mathbf{e}_i (f_i^* + f_{i'})$.
@@ -276,8 +277,8 @@ where $A$ is the projected frontal area.
 
 \subsection{Boundary conditions}
 
-At the inlet ($x = 0$) we apply Zou-He velocity boundary
-conditions~\cite{zou1997}. At the outlet ($x = N_x - 1$) we apply
+At the inlet ($x = 0$) I apply Zou-He velocity boundary
+conditions~\cite{zou1997}. At the outlet ($x = N_x - 1$) I apply
 Zou-He with prescribed pressure ($\rho = 1$). The $y$ and $z$ boundaries
 are periodic.
 
@@ -296,10 +297,10 @@ intermediate states to $O(1)$.
 
 \subsection{Poiseuille flow}
 
-We simulate pressure-driven flow between two parallel walls separated by
+I simulate pressure-driven flow between two parallel walls separated by
 $H = 18$ lattice cells in a $60 \times 20 \times 4$ domain. The
 inlet velocity is $U = 0.05$, the relaxation time is $\tau = 0.8$
-($\nu = 0.1$), and we run 3000 BGK steps.
+($\nu = 0.1$), and I run 3000 BGK steps.
 
 \Cref{fig:poiseuille} shows the velocity profile at the channel midpoint
 compared to the analytic parabolic solution. \Cref{tab:poiseuille} gives
@@ -339,7 +340,7 @@ $y$ & $u_x$ (LBM) & $u_x$ (analytic) \\
 \subsection{Sphere drag at $Re = 100$}
 \label{sec:sphere_cd}
 
-We validate the external-flow pipeline on the canonical test case of
+I validate the external-flow pipeline on the canonical test case of
 uniform flow past an isolated sphere at $Re = 100$. The reference value
 from the Clift, Grace, and Weber~\cite{clift1978} drag correlation is
 $C_d = 1.09$. In every case below the sphere has radius 0.5 in world
@@ -351,9 +352,9 @@ Two observations turned out to matter more than expected. First, the
 wake in this regime has low-frequency unsteadiness: a single-snapshot
 $C_d$ moves by 10--15\% between samples. Any meaningful validation
 must time-average. Second, the blockage ratio $D / L_y = 0.25$ that
-we use throughout is known to inflate measured $C_d$ by several
+I use throughout is known to inflate measured $C_d$ by several
 percent~\cite[ch.~9]{clift1978}; the finite-domain correction is
-physics, not numerical error. We chose not to widen the domain
+physics, not numerical error. I chose not to widen the domain
 because the paper's focus is the gradient pipeline, not a
 quantitatively tight $C_d$ match.
 
@@ -363,7 +364,7 @@ flow-through times; the reported $C_d$ is the mean of samples taken
 every 500 steps over the final 30\% of the run, and the reported
 $\sigma$ is their standard deviation (a quantitative fingerprint of
 the wake unsteadiness). MRT ghost-mode relaxation rates are held at
-d'Humi\`eres' default damping values~\cite{dhumieres2002}: we did
+d'Humi\`eres' default damping values~\cite{dhumieres2002}: I did
 not tune them to the target $Re$, which is a known source of
 additional a few-percent error~\cite{mei2002} and a deliberate
 trade-off to keep the experiment reproducible rather than
@@ -409,7 +410,7 @@ the blockage correction and the un-tuned MRT parameters. The observed
 convergence is not clean first- or second-order: the sequence hits a
 plateau because the remaining error is physics (blockage, reference
 correlation uncertainty, wake unsteadiness captured by finite-time
-averaging) rather than truncation. We report this explicitly rather
+averaging) rather than truncation. I report this explicitly rather
 than computing a nominal convergence order that would be dominated by
 those sources.
 
@@ -425,7 +426,7 @@ Gradient correctness is verified at two scales.
 
 \subsubsection{Local correctness (10 steps, float64)}
 
-We first confirm that reverse-mode AD through equilibrium, streaming,
+I first confirm that reverse-mode AD through equilibrium, streaming,
 and Bouzidi produces the mathematically correct derivative, by running
 short simulations in float64 mode (\texttt{JAX\_ENABLE\_X64}) on CPU
 and comparing against central finite differences with step size
@@ -460,7 +461,7 @@ Local correctness is necessary but not sufficient. In the shape
 optimisation pipeline the gradient is taken through thousands of
 simulation steps in float32, a regime in which differentiable fluid
 solvers are known to accumulate sensitivities and lose numerical
-agreement with FD even when AD is implemented exactly. We therefore
+agreement with FD even when AD is implemented exactly. I therefore
 also run a grid-convergence study of $\partial C_d / \partial r$ at
 four resolutions ($D = 4, 6, 8, 12$) using the paper's soft-porosity
 and Bouzidi-$q$ differentiable pipeline, MRT collision, and
@@ -496,8 +497,8 @@ upward, AD and FD agree on sign; their relative disagreement is 9--37\%
 and reflects the combined effect of float32 precision, wake
 unsteadiness, and the sigmoid-smoothed geometry whose derivative is
 the dominant contributor to the gradient magnitude (see
-\Cref{sec:optim_soft}). We view these numbers as the realistic
-accuracy band of the production gradient, and we frame the
+\Cref{sec:optim_soft}). I view these numbers as the realistic
+accuracy band of the production gradient, and I frame the
 optimisation results accordingly: Adam is robust to this level of
 gradient noise, but no part of the paper treats the gradient as a
 high-precision quantity at long horizons.
@@ -520,7 +521,7 @@ the sphere in the regime where Bouzidi resolves its curvature; see
 \Cref{sec:grad_convergence}).
 
 This setup is deliberately larger and longer than an earlier
-48x24x24, 150-step setup we tried: that grid produced a non-physical
+48x24x24, 150-step setup I tried: that grid produced a non-physical
 baseline $C_d \approx 0.43$ at which the forward flow had not yet
 developed, which in turn made any optimisation result a property of
 the transient rather than of the geometry. The $96 \times 48 \times 48$
@@ -533,7 +534,7 @@ below.
 
 To separate the contributions of the two differentiable paths in the
 pipeline (the sigmoid porosity of \Cref{eq:porosity} on the collision
-step, and the Bouzidi $q$ on the streaming step), we run the same
+step, and the Bouzidi $q$ on the streaming step), I run the same
 optimisation problem under four boundary treatments:
 %
 \begin{itemize}\setlength\itemsep{0pt}
@@ -646,7 +647,7 @@ Two further observations follow from this mode:
     and 6.30 respectively; the porosity path dominates and is equally
     available in both. The often-cited ``stronger gradients under
     Bouzidi'' effect arises only when the porosity path is absent,
-    which in our experiments is the hard-mask case where halfway
+    which in my experiments is the hard-mask case where halfway
     bounce-back gives zero and Bouzidi gives $5.55$.
     \item The baseline $C_d$ under soft porosity ($0.43$, $0.45$) is
     well below the hard-mask value ($1.85$). The sigmoid smooths the
@@ -701,7 +702,7 @@ the same. The gradient sign, however, is stable (positive at every
 $\alpha$). AD and FD agree within $3$\% at the small-$\alpha$ smooth
 end where the sigmoid is effectively linear over the
 $\epsilon$-perturbation, and the disagreement widens to $27$\% as
-$\alpha$ grows and the transition localises. Our choice of $\alpha
+$\alpha$ grows and the transition localises. My choice of $\alpha
 = 20$ is not cherry-picked for the optimisation outcome, but it is a
 setting whose quantitative behaviour cannot be extracted from the
 paper's results alone. Anyone reusing this pipeline on a new problem
@@ -755,7 +756,7 @@ cd-convergence}, \texttt{--example grad-convergence},
 \section{Conclusion}
 \label{sec:conclusion}
 
-We have presented a differentiable D3Q19 Lattice Boltzmann solver
+I have presented a differentiable D3Q19 Lattice Boltzmann solver
 with second-order Bouzidi interpolated bounce-back boundary
 conditions whose fractional wall distances $q$ are differentiable
 with respect to geometry via ray-surface intersection. The solver is
@@ -772,12 +773,12 @@ The enabling observation is that in the classical LBM formulation
 (halfway bounce-back with a binary solid mask) the drag is a
 piecewise-constant function of smooth shape parameters, so the AD
 gradient is \emph{exactly zero} and gradient-based shape optimisation
-is impossible in that setting. Our pipeline closes this gap:
+is impossible in that setting. My pipeline closes this gap:
 replacing $q = 0.5$ with the ray-intersection $q(r)$ yields a
 non-zero gradient that Adam uses to reduce a physically plausible
 baseline $C_d = 1.77$ to $1.66$ in 60 iterations by shrinking the
 radius. Adding a sigmoid-smoothed solid representation supplies a
-second gradient path through the collision step; we find that this
+second gradient path through the collision step; I find that this
 path dominates the numerical magnitude of the gradient when it is
 present (so ``stronger-gradient'' claims that compare soft-porosity
 variants are really claims about the porosity path, not about
@@ -803,7 +804,7 @@ The gradient convergence study in \Cref{sec:grad_convergence} also
 makes visible two practical limits of the current pipeline. First,
 Bouzidi is no longer accurate when the sphere is resolved with fewer
 than roughly six cells across, so the optimiser cannot be allowed to
-shrink the radius into that regime; we enforce this with a lower
+shrink the radius into that regime; I enforce this with a lower
 radius bound. Second, at the long-horizon gradients the optimisation
 relies on, AD and FD disagree by 10--40\% even on the correctly-signed
 cases, a noise band that is consistent with float32 precision,
