@@ -28,30 +28,26 @@
 \maketitle
 
 \begin{onecolabstract}
-I present a fully differentiable D3Q19 Lattice Boltzmann solver in JAX
-that supports gradient-based shape optimisation through second-order
-Bouzidi interpolated bounce-back boundary conditions. The Bouzidi
-fractional wall distances are computed via differentiable ray-surface
-intersection, providing a gradient path from obstacle geometry through
-the boundary treatment. This is the enabling difference: in the
-standard LBM formulation (halfway bounce-back with a binary solid
-mask) the drag is a piecewise-constant function of any smooth shape
-parameter, so the shape gradient is exactly zero almost everywhere
-and gradient-based optimisation is impossible without additional
-machinery. I verify directly that $\partial C_d / \partial r = 0$
-in that setting and non-zero under the Bouzidi pipeline. With a hard
-solid mask and Bouzidi $q$, Adam drives a physically plausible
-baseline ($C_d = 1.77$) down by 5.8\% via radius shrinkage. Adding a
+I present a reverse-mode AD pipeline for shape optimisation in the
+Lattice Boltzmann Method, in which the fractional wall distances of
+Bouzidi interpolated bounce-back are traced differentiably through
+JAX via ray-surface intersection. The central empirical observation
+is that classical LBM (halfway bounce-back with a binary solid mask)
+has exactly zero shape gradient almost everywhere, so gradient-based
+shape optimisation is impossible in that setting; replacing
+$q = 0.5$ with ray-intersection $q(r)$ produces a non-zero AD
+gradient that Adam uses to reduce a physically plausible baseline
+$C_d = 1.77$ to $1.66$ over 60 iterations by radius shrinkage. A
 sigmoid-smoothed solid representation provides an additional
-gradient path; I report its benefits and its pitfalls (degenerate
-optima that exploit the smoothing) and show that the resulting
-behaviour depends strongly on the sharpness parameter. Solver
-validation is via Poiseuille flow and a four-resolution sphere drag
-convergence study against the Clift, Grace, and Weber (1978)
-correlation at $Re = 100$, with time-averaged $C_d$ converging to
-within 7\%. Local gradient correctness is verified against finite
-differences in float64 to relative errors below $10^{-9}$. The
-solver, including BGK and MRT collision operators, is open-source at
+gradient path through the collision step; this path dominates the
+numerical gradient magnitude where it is present and admits
+degenerate optima that exploit the smoothing. Solver validation uses
+Poiseuille flow and a four-resolution sphere drag convergence study
+against the Clift, Grace, and Weber (1978) correlation at $Re = 100$,
+with time-averaged $C_d$ converging to within 7\%. Local gradient
+correctness is verified against finite differences in float64 to
+relative errors below $10^{-9}$. Implementation includes BGK and MRT
+collision operators; open-source at
 \url{https://github.com/MarcosAsh/LBM_JAX_Autodiff}.
 
 \smallskip\noindent\textbf{Keywords:}
@@ -79,29 +75,43 @@ Adjoint-based sensitivity analysis for LBM has been explored by several
 groups. Tekitek et al.~\cite{tekitek2006} derived adjoint equations for
 LBM and applied them to parameter identification. Krause et
 al.~\cite{krause2013} extended this to shape optimisation within the
-OpenLB framework. Norgaard et al.~\cite{norgaard2016} applied topology
+OpenLB framework. Zarth et al.~\cite{zarth2021} extended this line
+of work to AD-based shape optimisation in OpenLB, using forward-mode
+AD applied to a homogenised LBM formulation in which obstacle
+geometry is parameterised through smooth indicator functions that
+vary local permeability; their approach, like the volume-penalisation
+path in \Cref{sec:soft_solid} of this work, produces smooth gradients
+by smoothing the geometry rather than by resolving wall position
+sub-grid. Norgaard et al.~\cite{norgaard2016} applied topology
 optimisation to unsteady LBM flows, demonstrating that LBM's regular
 grid structure is well suited to density-based design methods.
 
 More recently, automatic differentiation (AD) through fluid simulations
 has gained traction. PhiFlow~\cite{holl2020} provides a differentiable
 Navier-Stokes solver in a deep-learning framework. Within the LBM
-community, Lettuce~\cite{bedrunka2021} implements a differentiable
-lattice Boltzmann solver in PyTorch, and XLB~\cite{ataei2024} provides a
-massively parallel JAX-based LBM framework with AD support. These tools
-exploit reverse-mode AD without requiring manual adjoint derivation.
+community, XLB~\cite{ataei2024} supports interpolated bounce-back as
+a boundary condition and is built on JAX with reverse-mode AD, but
+its published demonstrations of gradient-based use focus on
+initial-condition optimisation rather than shape optimisation; shape
+and topology optimisation are listed as planned features in the
+project's public roadmap. Lettuce~\cite{bedrunka2021} provides
+similar differentiable primitives in PyTorch. The gradient chain
+from obstacle geometry through Bouzidi $q$ to the drag force, while
+expressible in both frameworks' primitives, has not to my knowledge
+been demonstrated end-to-end in the published literature.
 Established non-differentiable LBM frameworks such as
 Palabos~\cite{latt2021} remain widely used but do not natively support
 gradient computation through the simulation.
 
-A critical gap in the existing literature concerns boundary treatment.
-Most differentiable LBM implementations use standard halfway
-bounce-back, which places the effective wall exactly at the midpoint
-between fluid and solid nodes. This is first-order accurate and, more
-importantly for optimisation, provides no useful gradient with respect to
-wall position: the wall location is locked to the grid, so the gradient
-of any flow quantity with respect to geometry is zero almost everywhere
-(it changes only when a cell flips between solid and fluid).
+A question that has received less direct attention concerns boundary
+treatment. When differentiable LBM is used with standard halfway
+bounce-back, the effective wall sits exactly at the midpoint between
+fluid and solid nodes. This is first-order accurate and, more
+importantly for optimisation, provides no useful gradient with respect
+to wall position: the wall location is locked to the grid, so the
+gradient of any flow quantity with respect to geometry is zero almost
+everywhere (it changes only when a cell flips between solid and
+fluid).
 
 Bouzidi interpolated bounce-back~\cite{bouzidi2001} resolves this by
 using the fractional distance $q \in [0, 1]$ from the fluid node to the
@@ -134,6 +144,43 @@ the Bouzidi pipeline: it is with classical LBM itself (halfway
 bounce-back + binary solid mask), for which I show the shape
 gradient is exactly zero. Making it non-zero is the enabling
 contribution of this work.
+
+\subsection{Related work}
+\label{sec:related}
+
+Three prior contributions sit closest to this one and deserve
+explicit positioning.
+
+Cheylan et al.~\cite{cheylan2019} use Ginzburg's interpolated
+two-relaxation-time bounce-back with a manually derived continuous
+adjoint for industrial-scale aerodynamic shape optimisation,
+including a Renault car-body case. The mathematical motivation for
+an interpolated boundary treatment is the same argument I make: the
+fractional wall distance makes the drag smoothly differentiable
+with respect to geometry. The machinery differs in that they
+derive and implement the adjoint by hand, while I rely on
+reverse-mode AD to trace the same dependency automatically.
+
+Zarth et al.~\cite{zarth2021} use forward-mode AD applied to a
+homogenised LBM formulation in OpenLB, varying local permeability
+through a smooth indicator function. Mathematically this is closer
+to the volume-penalisation path I describe in
+\Cref{sec:soft_solid} than to the Bouzidi path: gradients exist
+because the geometry itself is smoothed, not because the wall
+position is resolved sub-grid.
+
+XLB~\cite{ataei2024} and Lettuce~\cite{bedrunka2021} provide
+reverse-mode AD primitives and, in XLB's case, interpolated
+bounce-back as a supported boundary condition. Neither has
+published an end-to-end demonstration of Bouzidi-based shape
+optimisation in which the gradient is traced through the
+fractional wall distance $q(\text{geometry})$.
+
+The present work differs from these by using reverse-mode AD
+through Bouzidi interpolated bounce-back, providing a gradient
+path via sub-grid wall resolution rather than via volume
+penalisation, and by comparing the two paths within a single
+pipeline.
 
 
 %% ================================================================
@@ -234,10 +281,15 @@ This is a smooth function of $r$, and JAX's reverse-mode AD traces
 through it automatically.
 
 \subsection{Differentiable solid representation}
+\label{sec:soft_solid}
 
 The binary solid mask is a step function with zero gradient almost
-everywhere. Following List et al.~\cite{list2022}, I replace it with a
-sigmoid-smoothed porosity field:
+everywhere. Following the tradition of volume penalisation for
+embedding solids in fluid
+solvers~\cite{angot1999} and density-based topology optimisation of
+fluids~\cite{borrvall2003}, adapted to LBM by Pingen et
+al.~\cite{pingen2007}, I replace it with a sigmoid-smoothed porosity
+field:
 %
 \begin{equation}
 \phi(\mathbf{x}) = \sigma\!\left(\alpha (r - |\mathbf{x} - \mathbf{c}|)\right),
@@ -285,10 +337,13 @@ are periodic.
 \subsection{Gradient checkpointing}
 
 The simulation is compiled into a single XLA program via
-\texttt{jax.lax.scan}. Each step is wrapped with
-\texttt{jax.checkpoint}, which recomputes forward values during the
-backward pass instead of storing them. Memory drops from $O(N)$
-intermediate states to $O(1)$.
+\texttt{jax.lax.scan}. To keep backward-pass memory tractable, the
+scan is split into $\sqrt{N}$ chunks of $\sqrt{N}$ steps each, with
+\texttt{jax.checkpoint} applied at the chunk boundary; only the
+chunk-boundary states are retained, and each chunk's interior is
+recomputed during the backward pass. Activation memory is therefore
+$O(\sqrt{N})$ rather than the $O(N)$ of unchunked reverse-mode AD
+or the $O(1)$ but $2{\times}$-compute of per-step checkpointing.
 
 
 %% ================================================================
@@ -614,10 +669,10 @@ is the clean result: the only differentiable path is through $q(r)$,
 the optimiser uses it, and the outcome is physically sensible (a
 smaller sphere has less drag).
 
-The two rows together are the core claim: the existence of an AD
-path through Bouzidi is what makes gradient-based shape optimisation
-possible at all within the LBM, independent of any further smoothing
-of the geometry.
+The two rows together are the empirical observation: the existence
+of an AD path through Bouzidi is what makes gradient-based shape
+optimisation possible at all within the LBM, independent of any
+further smoothing of the geometry.
 
 \subsection{Soft porosity: additional signal, degenerate optima}
 \label{sec:optim_soft}
@@ -728,13 +783,15 @@ The simulation loop compiles via \texttt{jax.lax.scan} into a single XLA
 program.
 
 On an NVIDIA A100, a single BGK step on a $128^3$ grid takes
-approximately 15\,ms. MRT takes approximately 40\,ms due to the per-cell
-moment transforms. With \texttt{jax.checkpoint} enabled, the backward
-pass recomputes each forward step rather than storing intermediates,
-adding roughly $2\times$ wall-clock overhead. For a 200-step forward
-simulation, the combined forward+backward pass takes approximately 6\,s
-for BGK and 16\,s for MRT. Without checkpointing, memory scales as
-$O(N)$ and exceeds A100 capacity (40\,GB) beyond roughly 50 steps on a
+approximately 15\,ms. MRT takes approximately 40\,ms due to the
+per-cell moment transforms. With the $\sqrt{N}$-chunked
+checkpointing described in \Cref{sec:method}, the backward pass
+recomputes each chunk's interior states rather than storing all
+intermediates, trading roughly $1.5$--$2{\times}$ wall-clock for
+$O(\sqrt{N})$ activation memory. For a 200-step forward simulation,
+the combined forward+backward pass takes approximately 6\,s for BGK
+and 16\,s for MRT. Without checkpointing, memory scales as $O(N)$
+and exceeds A100 capacity (40\,GB) beyond roughly 50 steps on a
 $128^3$ grid.
 
 The code is open-source at
@@ -790,9 +847,9 @@ the paper documents them so that downstream users can avoid them.
 \subsection*{Limitations and future work}
 
 The current demonstration optimises a single scalar parameter (sphere
-radius). Extending to higher-dimensional design spaces -- multiple
-control points on a spline surface, or free-form deformation fields --
-introduces challenges that this work does not address. The Bouzidi $q$
+radius). Extending to higher-dimensional design spaces, such as
+multiple control points on a spline surface or free-form deformation
+fields, introduces challenges that this work does not address. The Bouzidi $q$
 values can become discontinuous when a lattice link transitions between
 hitting and missing the obstacle surface, creating a piecewise-smooth
 loss landscape. For complex shapes, the number of such discontinuities
@@ -845,8 +902,22 @@ M.J.~Krause, G.~Th\"ater, and V.~Heuveline,
 Boltzmann methods,'' \emph{Computers \& Mathematics with Applications},
 vol.~65, pp.~945--960, 2013.
 
+\bibitem{zarth2021}
+A.~Zarth, F.~Klemens, G.~Th\"ater, and M.J.~Krause,
+``Towards shape optimisation of fluid flows using lattice Boltzmann
+methods and automatic differentiation,''
+\emph{Computers \& Mathematics with Applications}, vol.~90,
+pp.~46--54, 2021.
+
+\bibitem{cheylan2019}
+I.~Cheylan, G.~Fritz, D.~Ricot, and P.~Sagaut,
+``Shape optimization using the adjoint lattice Boltzmann method for
+aerodynamic applications,''
+\emph{AIAA Journal}, vol.~57, no.~7, pp.~2758--2773, 2019.
+DOI: 10.2514/1.J057955.
+
 \bibitem{norgaard2016}
-S.~Norgaard, O.~Sigmund, and B.~Lazarov,
+S.A.~N{\o}rgaard, O.~Sigmund, and B.~Lazarov,
 ``Topology optimization of unsteady flow problems using the lattice
 Boltzmann method,''
 \emph{Journal of Computational Physics}, vol.~307, pp.~291--307, 2016.
@@ -858,22 +929,25 @@ in \emph{International Conference on Learning Representations (ICLR)},
 2020.
 
 \bibitem{bedrunka2021}
-M.~Bedrunka, D.~Wilde, M.~Kliemank, D.~Reith, H.~Foysi, and
+M.C.~Bedrunka, D.~Wilde, M.~Kliemank, D.~Reith, H.~Foysi, and
 A.~Kr\"amer,
 ``Lettuce: PyTorch-based lattice Boltzmann framework,''
-in \emph{Computational Science -- ICCS 2021}, Lecture Notes in
-Computer Science, Springer, 2021, pp.~40--55.
+in \emph{High Performance Computing: ISC High Performance Digital
+2021 International Workshops}, Lecture Notes in Computer Science,
+vol.~12761, Springer, 2021, pp.~40--55.
 
 \bibitem{ataei2024}
-M.~Ataei, H.~Salehipour, and D.~Brinkerhoff,
+M.~Ataei and H.~Salehipour,
 ``XLB: A differentiable massively parallel lattice Boltzmann library
 in Python,''
-\emph{arXiv:2311.16080}, 2024.
+\emph{Computer Physics Communications}, vol.~300, article~109187,
+2024.
 
 \bibitem{latt2021}
-J.~Latt, C.~Malaspinas, D.~Kontaxakis, A.~Parmigiani, D.~Lagrava,
-F.~Brogi, M.B.~Belgacem, Y.~Thorimbert, S.~Leclaire, S.~Li,
-F.~Marson, J.~Lemus, C.~Kotsalos, R.~Conber, and B.~Chopard,
+J.~Latt, O.~Malaspinas, D.~Kontaxakis, A.~Parmigiani, D.~Lagrava,
+F.~Brogi, M.~Ben~Belgacem, Y.~Thorimbert, S.~Leclaire, S.~Li,
+F.~Marson, J.~Lemus, C.~Kotsalos, R.~Conradin, C.~Coreixas,
+R.~Petkantchin, F.~Raynaud, J.~B\'eny, and B.~Chopard,
 ``Palabos: Parallel Lattice Boltzmann Solver,''
 \emph{Computers \& Mathematics with Applications}, vol.~81,
 pp.~334--350, 2021.
@@ -900,10 +974,10 @@ R.~Clift, J.R.~Grace, and M.E.~Weber,
 \emph{Bubbles, Drops, and Particles}, Academic Press, 1978.
 
 \bibitem{mei2002}
-R.~Mei, L.S.~Luo, and W.~Shyy,
+R.~Mei, D.~Yu, W.~Shyy, and L.-S.~Luo,
 ``Force evaluation in the lattice Boltzmann method involving curved
 geometry,''
-\emph{Physical Review E}, vol.~65, 041203, 2002.
+\emph{Physical Review E}, vol.~65, no.~4, article~041203, 2002.
 
 \bibitem{zou1997}
 Q.~Zou and X.~He,
@@ -911,11 +985,24 @@ Q.~Zou and X.~He,
 Boltzmann BGK model,''
 \emph{Physics of Fluids}, vol.~9, no.~6, pp.~1591--1598, 1997.
 
-\bibitem{list2022}
-B.~List, L.~Chen, and N.~Thuerey,
-``Learned Turbulence Modelling with Differentiable Fluid Solvers,''
-\emph{NeurIPS Workshop on Machine Learning and the Physical Sciences},
-2022.
+\bibitem{angot1999}
+P.~Angot, C.-H.~Bruneau, and P.~Fabrie,
+``A penalization method to take into account obstacles in
+incompressible viscous flows,''
+\emph{Numerische Mathematik}, vol.~81, pp.~497--520, 1999.
+
+\bibitem{borrvall2003}
+T.~Borrvall and J.~Petersson,
+``Topology optimization of fluids in Stokes flow,''
+\emph{International Journal for Numerical Methods in Fluids},
+vol.~41, no.~1, pp.~77--107, 2003.
+
+\bibitem{pingen2007}
+G.~Pingen, A.~Evgrafov, and K.~Maute,
+``Topology optimization of flow domains using the lattice Boltzmann
+method,''
+\emph{Structural and Multidisciplinary Optimization}, vol.~34,
+pp.~507--524, 2007.
 
 \bibitem{jax2018}
 J.~Bradbury et al.,

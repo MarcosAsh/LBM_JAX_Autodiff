@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2026/dev/Arch Linux) (preloaded format=pdflatex 2026.2.19)  23 APR 2026 13:13
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2026/dev/Arch Linux) (preloaded format=pdflatex 2026.2.19)  23 APR 2026 14:53
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -735,30 +735,25 @@ Package hyperref Info: Link coloring OFF on input line 20.
 
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: End \AtBeginDocument code.
-LaTeX Font Info:    Trying to load font information for U+msa on input line 41.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 38.
 
  (/usr/share/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 41.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 38.
 
 
 (/usr/share/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
-Underfull \hbox (badness 1178) in paragraph at lines 31--56
-\OT1/cmr/m/n/9 based shape op-ti-mi-sa-tion through second-order
- []
-
-
-Underfull \hbox (badness 1371) in paragraph at lines 57--60
+Underfull \hbox (badness 1371) in paragraph at lines 53--56
 \OT1/cmr/bx/n/9 Keywords: \OT1/cmr/m/n/9 lat-tice Boltz-mann method, au-to-
  []
 
 
 
 
-Underfull \hbox (badness 1102) in paragraph at lines 86--96
+Underfull \hbox (badness 1102) in paragraph at lines 89--105
 \OT1/cmr/m/n/10 learning frame-work. Within the LBM com-mu-nity,
  []
 
@@ -768,170 +763,177 @@ Underfull \hbox (badness 1102) in paragraph at lines 86--96
 
 
 ]
+Underfull \hbox (badness 3291) in paragraph at lines 154--163
+\OT1/cmr/m/n/10 con-tin-u-ous ad-joint for industrial-scale aero-dy-namic
+ []
+
+
+
+
+Underfull \hbox (badness 1014) in paragraph at lines 172--178
+\OT1/cmr/m/n/10 shape op-ti-mi-sa-tion in which the gra-di-ent is traced
+ []
 
 
 
 [2]
-Underfull \hbox (badness 10000) in paragraph at lines 266--272
+Underfull \hbox (badness 10000) in paragraph at lines 318--324
 \OT1/cmr/m/n/10 I use the Mei-Luo-Shyy mo-men-tum ex-change
  []
 
 
-Underfull \hbox (badness 1533) in paragraph at lines 266--272
+Underfull \hbox (badness 1533) in paragraph at lines 318--324
 \OT1/cmr/m/n/10 method [[]]. For each fluid node ad-ja-cent to a
  []
 
-<figures/poiseuille_profile.pdf, id=178, 317.41536pt x 243.17819pt>
+
+
+<figures/poiseuille_profile.pdf, id=187, 317.41536pt x 243.17819pt>
 File: figures/poiseuille_profile.pdf Graphic file (type pdf)
 <use figures/poiseuille_profile.pdf>
-Package pdftex.def Info: figures/poiseuille_profile.pdf  used on input line 313
+Package pdftex.def Info: figures/poiseuille_profile.pdf  used on input line 368
 .
 (pdftex.def)             Requested size: 245.24199pt x 187.886pt.
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 340.
+(hyperref)                removing `math shift' on input line 395.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 340.
+(hyperref)                removing `math shift' on input line 395.
 
 
 
-
-
-[3 <./figures/poiseuille_profile.pdf>]
-<figures/cd_convergence.pdf, id=239, 238.69789pt x 180.30267pt>
+[3]
+<figures/cd_convergence.pdf, id=212, 238.69789pt x 180.30267pt>
 File: figures/cd_convergence.pdf Graphic file (type pdf)
 <use figures/cd_convergence.pdf>
-Package pdftex.def Info: figures/cd_convergence.pdf  used on input line 398.
+Package pdftex.def Info: figures/cd_convergence.pdf  used on input line 453.
 (pdftex.def)             Requested size: 245.24199pt x 185.2516pt.
 
-Underfull \vbox (badness 6445) has occurred while \output is active []
 
 
 
+[4 <./figures/poiseuille_profile.pdf> <./figures/cd_convergence.pdf>]
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
-[4 <./figures/cd_convergence.pdf>]
-<figures/optim_summary.pdf, id=320, 484.41591pt x 182.38828pt>
+
+<figures/optim_summary.pdf, id=335, 484.41591pt x 182.38828pt>
 File: figures/optim_summary.pdf Graphic file (type pdf)
 <use figures/optim_summary.pdf>
-Package pdftex.def Info: figures/optim_summary.pdf  used on input line 575.
+Package pdftex.def Info: figures/optim_summary.pdf  used on input line 630.
 (pdftex.def)             Requested size: 450.43253pt x 169.59428pt.
 
 
-
-Underfull \hbox (badness 10000) in paragraph at lines 609--616
+[5]
+Underfull \hbox (badness 10000) in paragraph at lines 664--671
 []\OT1/cmr/m/n/10 With Bouzidi $\OML/cmm/m/it/10 q$ \OT1/cmr/m/n/10 and the sam
 e hard mask
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 609--616
+Underfull \hbox (badness 10000) in paragraph at lines 664--671
 \OT1/cmr/m/n/10 (\OT1/cmr/bx/n/10 bouzidi[]hard\OT1/cmr/m/n/10 ), the gra-di-en
 t be-comes non-zero
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 644--652
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 699--707
 []\OT1/cmr/m/n/10 The \OT1/cmr/m/it/10 gra-di-ent mag-ni-tude \OT1/cmr/m/n/10 c
 om-par-i-son be-tween
  []
 
 
-Underfull \hbox (badness 1590) in paragraph at lines 644--652
+Underfull \hbox (badness 1590) in paragraph at lines 699--707
 \OT1/cmr/m/n/10 6.30 re-spec-tively; the poros-ity path dom-i-nates
  []
 
 
 
-[5]
-<figures/sharpness_sensitivity.pdf, id=336, 238.14333pt x 180.38449pt>
+[6 <./figures/optim_summary.pdf>]
+<figures/sharpness_sensitivity.pdf, id=417, 238.14333pt x 180.38449pt>
 File: figures/sharpness_sensitivity.pdf Graphic file (type pdf)
 <use figures/sharpness_sensitivity.pdf>
 Package pdftex.def Info: figures/sharpness_sensitivity.pdf  used on input line 
-690.
+745.
 (pdftex.def)             Requested size: 245.24199pt x 185.7623pt.
 
 
 
-
-[6 <./figures/optim_summary.pdf> <./figures/sharpness_sensitivity.pdf>]
-Underfull \hbox (badness 2261) in paragraph at lines 744--753
+Underfull \hbox (badness 2261) in paragraph at lines 801--810
 \OT1/cmr/m/n/10 be-low (e.g. \OT1/cmtt/m/n/10 --example cd-convergence\OT1/cmr/
 m/n/10 , \OT1/cmtt/m/n/10 --example
  []
 
 
-Underfull \hbox (badness 1092) in paragraph at lines 759--771
+Underfull \hbox (badness 1092) in paragraph at lines 816--828
 \OT1/cmr/m/n/10 mann solver with second-order Bouzidi in-ter-po-lated
  []
 
 
-Underfull \hbox (badness 1082) in paragraph at lines 772--789
+Underfull \hbox (badness 1082) in paragraph at lines 829--846
 []\OT1/cmr/m/n/10 The en-abling ob-ser-va-tion is that in the clas-si-cal
  []
 
 
 
-
-Underfull \hbox (badness 2351) in paragraph at lines 792--802
+[7 <./figures/sharpness_sensitivity.pdf>]
+Underfull \hbox (badness 2351) in paragraph at lines 849--859
 \OT1/cmr/m/n/10 pa-ram-e-ter (sphere ra-dius). Ex-tend-ing to higher-
  []
 
 
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-
-
-[7]
-Underfull \hbox (badness 6608) in paragraph at lines 833--836
+Underfull \hbox (badness 6608) in paragraph at lines 890--893
 []\OT1/cmr/m/n/10 T. Kr^^?uger, H. Kusumaat-maja, A. Kuzmin,
  []
 
 
-Underfull \hbox (badness 1642) in paragraph at lines 838--841
+
+
+Underfull \hbox (badness 1642) in paragraph at lines 895--898
 \OT1/cmr/m/n/10 pa-ram-e-ter iden-ti-fi-ca-tion,'' \OT1/cmr/m/it/10 Com-put-ers
  & Flu-ids\OT1/cmr/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 3758) in paragraph at lines 843--847
+Underfull \hbox (badness 3758) in paragraph at lines 900--904
 []\OT1/cmr/m/n/10 M.J. Krause, G. Th^^?ater, and V. Heuve-line,
  []
 
 
-Underfull \hbox (badness 2088) in paragraph at lines 874--880
-\OT1/cmr/m/n/10 giani, D. La-grava, F. Brogi, M.B. Bel-gacem,
+Underfull \hbox (badness 1661) in paragraph at lines 920--924
+[]\OT1/cmr/m/n/10 S.A. N^^\rgaard, O. Sig-mund, and B. Lazarov,
  []
 
 
-Underfull \hbox (badness 3343) in paragraph at lines 874--880
-\OT1/cmr/m/n/10 Y. Thorim-bert, S. Leclaire, S. Li, F. Mar-
- []
-
-
-Underfull \hbox (badness 1694) in paragraph at lines 874--880
-\OT1/cmr/m/n/10 son, J. Lemus, C. Kot-sa-los, R. Con-ber, and
+Underfull \hbox (badness 1168) in paragraph at lines 947--954
+\OT1/cmr/m/n/10 J. Lemus, C. Kot-sa-los, R. Con-radin, C. Cor-
  []
 
 
 
+[8]
 
 
-[8] (./paper.aux)
+
+[9
+
+] (./paper.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
  ***********
 Package rerunfilecheck Info: File `paper.out' has not changed.
-(rerunfilecheck)             Checksum: 75FBCE7198133A5CD8A92A2EEAB2D81C;4455.
+(rerunfilecheck)             Checksum: BD91B12E8296C75EBA252C07245B221C;4576.
  ) 
 Here is how much of TeX's memory you used:
- 24528 strings out of 475171
- 462177 string characters out of 5767095
- 839079 words of memory out of 5000000
- 47079 multiletter control sequences out of 15000+600000
+ 24544 strings out of 475171
+ 462403 string characters out of 5767095
+ 843408 words of memory out of 5000000
+ 47089 multiletter control sequences out of 15000+600000
  571116 words of font info for 83 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  99i,13n,101p,1032b,865s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -959,10 +961,10 @@ ist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/share/texmf-dist/fonts/type
 1/public/amsfonts/cm/cmtt10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfo
 nts/cm/cmtt9.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msb
 m10.pfb>
-Output written on paper.pdf (8 pages, 431164 bytes).
+Output written on paper.pdf (9 pages, 434670 bytes).
 PDF statistics:
- 612 PDF objects out of 1000 (max. 8388607)
- 375 compressed objects within 4 object streams
- 74 named destinations out of 1000 (max. 500000)
- 233 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 635 PDF objects out of 1000 (max. 8388607)
+ 397 compressed objects within 4 object streams
+ 80 named destinations out of 1000 (max. 500000)
+ 241 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -75,7 +75,7 @@ Steady-state channel flow matches the analytic parabolic profile to 3+ significa
 - **Zou-He boundary conditions** for velocity inlets and pressure outlets
 - **Smagorinsky SGS model** for turbulence at under-resolved Reynolds numbers
 - **Momentum exchange force** with pressure/friction drag decomposition
-- **Sigmoid-smoothed solids** for gradient-friendly shape optimization (List et al. 2022)
+- **Sigmoid-smoothed solids** for gradient-friendly shape optimization (density-based topology optimisation, e.g. Pingen et al. 2007 for LBM)
 - **Gradient checkpointing** via `jax.checkpoint` for memory-bounded backprop
 - **Stability guard** resets diverged cells, matching the reference C/GLSL solver
 - Validated against [the reference solver](https://github.com/MarcosAsh/Lattice_Fluid_Dynamics) and experimental data (Clift et al. 1978)
@@ -171,7 +171,7 @@ docs/                    mkdocs-material site with guides and API reference
 Differentiable fluid solvers exist (adjoint LBM, PhiFlow, Lettuce, XLB). The contribution here is specifically:
 
 - **A shape gradient where there was none.** Classical LBM with halfway bounce-back + binary solid mask gives `dCd/dr = 0` exactly (verified directly; not a small numerical residual). This repo's Bouzidi + ray-sphere `q` pipeline gives a non-zero gradient, which is what makes gradient-based shape optimisation possible in the first place.
-- **Honest about the soft-porosity trade-off.** Sigmoid-smoothed solids (List et al. 2022) add a second gradient path but admit degenerate optima under area-normalised objectives; the paper documents the trade-off rather than papering over it.
+- **Honest about the soft-porosity trade-off.** Sigmoid-smoothed solids (density-based topology optimisation; Pingen et al. 2007 for the LBM version) add a second gradient path but admit degenerate optima under area-normalised objectives; the paper documents the trade-off rather than papering over it.
 - **Reproducible.** Every figure and table in the paper is regenerated from a single `modal run modal_worker.py --example <name>` call against an A100.
 
 ## Tests
@@ -182,10 +182,24 @@ pytest tests/test_poiseuille.py -v  # analytic Poiseuille comparison
 pytest tests/test_bouzidi_gradients.py -v  # Bouzidi gradient verification
 ```
 
+## Related work
+
+Three prior contributions sit closest to this one:
+
+- **Cheylan, Fritz, Ricot, Sagaut (2019).** "Shape Optimization Using the Adjoint Lattice Boltzmann Method for Aerodynamic Applications," *AIAA Journal* 57(7):2758-2773. Uses Ginzburg's interpolated two-relaxation-time bounce-back with a manually derived continuous adjoint for industrial aerodynamic shape optimisation. Same boundary-treatment argument; adjoint rather than AD.
+- **Zarth, Klemens, Thäter, Krause (2021).** "Towards shape optimisation of fluid flows using lattice Boltzmann methods and automatic differentiation," *Comput. Math. Appl.* 90:46-54. Forward-mode AD applied to homogenised LBM in OpenLB, varying local permeability through a smooth indicator function. Mathematically closer to the soft-porosity path in this repo than to the Bouzidi path.
+- **Ataei, Salehipour (2024) — XLB** and **Bedrunka et al. (2021) — Lettuce.** Both provide reverse-mode AD primitives; XLB additionally supports interpolated bounce-back. Neither has published an end-to-end shape-optimisation demonstration in which the gradient is traced through `q(geometry)`.
+
+This repo's contribution is reverse-mode AD through Bouzidi interpolated bounce-back in JAX, with a direct empirical comparison of the Bouzidi path against the volume-penalisation path within a single pipeline.
+
 ## References
 
 - Clift, R., Grace, J.R. and Weber, M.E. (1978). *Bubbles, Drops, and Particles.* Academic Press.
 - d'Humieres, D. et al. (2002). "Multiple-relaxation-time lattice Boltzmann models in three dimensions." Phil. Trans. R. Soc. A.
 - Bouzidi, M. et al. (2001). "Momentum transfer of a Boltzmann-lattice fluid with boundaries." Physics of Fluids.
 - Zou, Q. and He, X. (1997). "On pressure and velocity boundary conditions for the lattice Boltzmann BGK model." Physics of Fluids.
-- List, B. et al. (2022). "Learned Turbulence Modelling with Differentiable Fluid Solvers." NeurIPS Workshop.
+- Angot, P., Bruneau, C.-H., Fabrie, P. (1999). "A penalization method to take into account obstacles in incompressible viscous flows." Numer. Math. 81:497-520.
+- Borrvall, T., Petersson, J. (2003). "Topology optimization of fluids in Stokes flow." Int. J. Numer. Methods Fluids 41(1):77-107.
+- Pingen, G., Evgrafov, A., Maute, K. (2007). "Topology optimization of flow domains using the lattice Boltzmann method." Struct. Multidiscip. Optim. 34:507-524.
+- Cheylan, I., Fritz, G., Ricot, D., Sagaut, P. (2019). "Shape Optimization Using the Adjoint Lattice Boltzmann Method for Aerodynamic Applications." AIAA Journal 57(7):2758-2773.
+- Zarth, A., Klemens, F., Thäter, G., Krause, M.J. (2021). "Towards shape optimisation of fluid flows using lattice Boltzmann methods and automatic differentiation." Comput. Math. Appl. 90:46-54.
